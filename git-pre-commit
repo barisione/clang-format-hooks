@@ -1,0 +1,223 @@
+#! /bin/bash
+
+# Force variable declaration before access.
+set -u
+
+function error_exit() {
+    for str in "$@"; do
+        echo -n "$str" >&2
+    done
+    echo >&2
+
+    exit 1
+}
+
+readonly top_dir=$(git rev-parse --show-toplevel) || \
+    error_exit "You need to be in the git repository to run this script."
+readonly hook_path="$top_dir/.git/hooks/pre-commit"
+readonly me=$(realpath "$0")
+readonly me_relative_to_hook=$(realpath --relative-to="$(dirname "$hook_path")" "$me")
+readonly my_dir=$(dirname "$me")
+readonly apply_format="$my_dir/apply-format"
+readonly apply_format_relative_to_top_dir=$(realpath --relative-to="$top_dir" "$apply_format")
+
+function is_installed() {
+    if [ ! -e "$hook_path" ]; then
+        echo nothing
+    else
+        readonly existing_hook_target=$(readlink -m -- "$hook_path")
+        if [ "$existing_hook_target" = "$me" ]; then
+            # Already installed.
+            echo installed
+        else
+            # There's a hook, but it's not us.
+            echo different
+        fi
+    fi
+}
+
+function install() {
+    if ln -s "$me_relative_to_hook" "$hook_path" 2> /dev/null; then
+        echo "Pre-commit hook installed."
+    else
+        local -r res=$(is_installed)
+        if [ "$res" = installed ]; then
+            error_exit "The hook is already installed."
+        elif [ "$res" = different ]; then
+            error_exit "There's already an existing pre-commit hook, but for something else."
+        elif [ "$res" = nothing ]; then
+            error_exit "There's no pre-commit hook, but we couldn't create a symlink."
+        else
+            error_exit "Unexpected failure."
+        fi
+    fi
+}
+
+function uninstall() {
+    local -r res=$(is_installed)
+    if [ "$res" = installed ]; then
+        rm "$hook_path" || \
+            error_exit "Couldn't remove the pre-commit hook."
+    elif [ "$res" = different ]; then
+        error_exit "There's a pre-commit hook installed, but for something else. Not removing."
+    elif [ "$res" = nothing ]; then
+        error_exit "There's no pre-commit hook, nothing to uninstall."
+    else
+        error_exit "Unexpected failure detecting the pre-commit hook status."
+    fi
+}
+
+function show_help() {
+    cat << EOF
+SYNOPSIS
+
+    $0 [install|uninstall]
+
+DESCRIPTION
+
+    Git hook to verify and fix formatting before committing.
+
+    The script is invoked automatically when you commit, so you need to call it
+    directly only to set up the hook or remove it.
+
+    To setup the hook run this script passing "install" on the command line.
+    To remove the hook run passing "uninstall".
+
+    By default, the hook requires user input. If you don't run git from a
+    terminal, you can disable the interactive prompts with:
+        $ git config hooks.clangFormatDiffInteractive false
+EOF
+}
+
+if [ $# = 1 ]; then
+    case "$1" in
+        -h | -\? | --help )
+            show_help
+            exit 0
+            ;;
+        install )
+            install
+            exit 0
+            ;;
+        uninstall )
+            uninstall
+            exit 0
+            ;;
+    esac
+fi
+
+[ $# = 0 ] || error_exit "Invalid arguments: $*"
+
+
+# This is a real run of the hook, not a install/uninstall run.
+
+if [ -z "${GIT_DIR:-}" ] && [ -z "${GIT_INDEX_FILE:-}" ]; then
+    error_exit \
+        $'It looks like you invoked this script directly, but it\'s supposed to be used\n' \
+        $'as a pre-commit git hook.\n' \
+        $'\n' \
+        $'To install the hook try:\n' \
+        $'    ' "$0" $' install\n' \
+        $'\n' \
+        $'For more details on this script try:\n' \
+        $'    ' "$0" $' --help\n'
+fi
+
+[ -x "$apply_format" ] || \
+    error_exit \
+    $'Cannot find the apply-format script.\n' \
+    $'I expected it here:\n' \
+    $'    ' "$apply_format"
+
+readonly patch=$(mktemp)
+trap '{ rm -f "$patch"; }' EXIT
+"$apply_format" --cached > "$patch" || \
+    error_exit $'\nThe apply-format script failed.'
+
+if [ "$(wc -l < "$patch")" -eq 0 ]; then
+    echo "The staged content is formatted correctly."
+    exit 0
+fi
+
+
+# The code is not formatted correctly.
+
+readonly interactive=$(cd "$top_dir" && git config --bool hooks.clangFormatDiffInteractive)
+if [ "$interactive" != false ]; then
+    # Interactive is the default, so anything that is not false is converted to
+    # true, including possibly invalid values.
+    interactive=true
+fi
+
+if [ "$interactive" = false ]; then
+    echo "The staged content is not formatted correctly."
+    echo "You can fix the formatting with:"
+    echo "    $ ./$apply_format_relative_to_top_dir --apply-to-staged"
+    echo
+    echo "You can also make this script interactive (if you use git from a terminal) with:"
+    echo "    $ git config hooks.clangFormatDiffInteractive true"
+    exit 1
+fi
+
+cat "$patch"
+
+echo
+echo "The staged content is not formatted correctly."
+echo "The patch shown above can be applied automatically to fix the formatting."
+echo
+
+echo "You can:"
+echo " [a]: Apply the patch"
+echo " [f]: Force and commit anyway (not recommended!)"
+echo " [c]: Cancel the commit"
+echo " [?]: Show help"
+echo
+
+while true; do
+    echo -n "What would you like to do? [a/f/c/?] "
+    read -r answer < /dev/tty
+    case "$answer" in
+
+        [aA] )
+            patch -p0 < "$patch" || \
+                error_exit \
+                $'\n' \
+                $'Cannot apply patch to local files.\n' \
+                $'Have you modified the file locally after starting the commit?'
+            git apply -p0 --cached < "$patch" || \
+                error_exit \
+                $'\n' \
+                $'Cannot apply patch to git staged changes.\n' \
+                $'This may happen if you have some overlapping unstaged changes. To solve\n' \
+                $'you need to stage or reset changes manually.'
+            ;;
+
+        [fF] )
+            echo
+            echo "Will commit anyway!"
+            echo "You can always abort by quitting your editor with no commit message."
+            echo
+            echo -n "Press return to continue."
+            read -r < /dev/tty
+            exit 0
+            ;;
+
+        [cC] )
+            error_exit "Commit aborted as requested."
+            ;;
+
+        ? )
+            echo
+            show_help
+            echo
+            continue
+            ;;
+
+        * )
+            echo 'Invalid answer. Type "a", "f" or "c".'
+            echo
+            continue
+
+    esac
+    break
+done

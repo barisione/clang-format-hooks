@@ -1,0 +1,226 @@
+#! /bin/bash
+
+# Force variable declaration before access.
+set -u
+
+##################
+# Misc functions #
+##################
+
+function error_exit() {
+    for str in "$@"; do
+        echo -n "$str" >&2
+    done
+    echo >&2
+
+    exit 1
+}
+
+
+########################
+# Command line parsing #
+########################
+
+function show_help() {
+    cat << EOF
+SYNOPSIS
+
+    To reformat git diffs:
+
+        $0 [OPTIONS] [FILES]
+
+    To reformat whole files, including unchanged parts:
+
+        $0 [-f | --whole-file] FILES
+
+DESCRIPTION
+
+    Reformat C or C++ code to match a specified formatting style.
+
+    This command can either work on diffs, to reformat only changed parts of
+    the code, or on whole files (if -f or --whole-file is used).
+
+    -f, --whole-file
+        Reformat the specified files completely (including parts you didn't
+        change).
+        The patch is printed on stdout by default. Use -i if you want to modify
+        the files on disk.
+
+    --staged, --cached
+        Reformat only code which is staged for commit.
+        The patch is printed on stdout by default. Use -i if you want to modify
+        the files on disk.
+
+    -i
+        Reformat the code and apply the changes to the files on disk (instead
+        of just printing the patch on stdout).
+
+    --apply-to-staged
+        This is like specifying both --staged and -i, but the formatting
+        changes are also staged for commit (so you can just use "git commit"
+        to commit what you planned to, but formatted correctly).
+
+    --help, -h, -?
+        Show this help.
+EOF
+}
+
+# getopts doesn't support long options.
+# getopt mangles stuff.
+# So we parse manually...
+declare positionals=()
+declare has_positionals=false
+declare whole_file=false
+declare apply_to_staged=false
+declare staged=false
+declare in_place=false
+while [ $# -gt 0 ]; do
+    declare arg="$1"
+    shift # Past option.
+    case "$arg" in
+        -h | -\? | --help )
+            show_help
+            exit 0
+            ;;
+        -f | --whole-file )
+            whole_file=true
+            ;;
+        --apply-to-staged )
+            apply_to_staged=true
+            ;;
+        --cached | --staged )
+            staged=true
+            ;;
+        -i )
+            in_place=true
+            ;;
+        -- )
+            # Stop processing further arguments.
+            if [ $# -gt 0 ]; then
+                positionals+=("$@")
+                has_positionals=true
+            fi
+            break
+            ;;
+        -* )
+            error_exit "Unknown argument: $arg"
+            ;;
+        *)
+            positionals+=("$arg")
+            ;;
+    esac
+done
+
+# Restore positional arguments, access them from "$@".
+if [ ${#positionals[@]} -gt 0 ]; then
+    set -- "${positionals[@]}"
+    has_positionals=true
+fi
+
+
+#######################################
+# Detection of clang-format & friends #
+#######################################
+
+# clang-format.
+declare format="${CLANG_FORMAT:-}"
+if [ -z "$format" ]; then
+    format=$(which clang-format)
+fi
+
+if [ -z "$format" ]; then
+    error_exit \
+        $'You need to install clang-format.\n' \
+        $'\n' \
+        $'On Ubuntu/Debian this is available in the clang-format package or, in\n' \
+        $'older distro versions, clang-format-VERSION.\n' \
+        $'On Fedora it\'s available in the clang package.\n' \
+        $'You can also speficy your own path for clang-format by setting the\n' \
+        $'$CLANG_FORMAT environment variable.'
+fi
+
+# clang-format-diff.
+if [ "$whole_file" = false ]; then
+    declare format_diff="${CLANG_FORMAT_DIFF:-}"
+    if [ -z "$format_diff" ]; then
+        format_diff=$(which clang-format-diff)
+    fi
+    if [ -z "$format_diff" ]; then
+        format_diff=$(which clang-format-diff.py)
+    fi
+    if [ -z "$format_diff" ]; then
+        readonly format_diff_fedora_path=/usr/share/clang/clang-format-diff.py
+        if [ -e "$format_diff_fedora_path" ]; then
+            format_diff="python $format_diff_fedora_path"
+        fi
+    fi
+
+    if [ -z "$format_diff" ]; then
+        error_exit \
+            $'Cannot find clang-format-diff which should be shipped as part of the same\n' \
+            $'package where clang-format is.\n' \
+            $'\n' \
+            $'Please, find out where clang-format-diff is in your distro and modify this\n' \
+            $'script to support that. It\'s sometimes called clang-format-diff.py.\n' \
+            $'\n' \
+            $'You can also speficy your own path for clang-format-diff by setting the\n' \
+            $'$CLANG_FORMAT_DIFF environment variable, for instance:\n' \
+            $'\n' \
+            $'    CLANG_FORMAT_DIFF="python /.../clang-format-diff.py" \\\n' \
+            $'        ' "$0"
+    fi
+fi
+
+
+############################
+# Actually run the command #
+############################
+
+if [ "$whole_file" = true ]; then
+
+    [ "$has_positionals" = true ] || \
+        error_exit "No files to reformat specified."
+    [ "$staged" = false ] || \
+        error_exit "--staged/--cached only make sense when applying to a diff."
+
+    declare format_args=("$format" "-style=file")
+    [ "$in_place" = true ] && format_args+=("-i")
+
+    "${format_args[@]}" "$@"
+
+else # Diff-only.
+
+    if [ "$apply_to_staged" = true ]; then
+        [ "$staged" = false ] || \
+            error_exit "You don't need --staged/--cached with --apply-to-staged."
+        [ "$in_place" = false ] || \
+            error_exit "You don't need -i with --apply-to-staged."
+        staged=true
+        readonly patch_dest=$(mktemp)
+        trap '{ rm -f "$patch_dest"; }' EXIT
+    else
+        readonly patch_dest=/dev/stdout
+    fi
+
+    declare git_args=(git diff -U0 --no-color)
+    [ "$staged" = true ] && git_args+=("--staged")
+
+    # $format_diff may contain a command ("python") and the script to excute, so we
+    # need to split it.
+    read -r -a format_diff_args <<< "$format_diff"
+    [ "$in_place" = true ] && format_diff_args+=("-i")
+
+    "${git_args[@]}" "$@" | "${format_diff_args[@]}" -p1 -style=file -iregex='^.*\.(c|cpp|cxx|cc|h)$' > "$patch_dest"
+
+    if [ "$apply_to_staged" = true ]; then
+        if [ ! -s "$patch_dest" ]; then
+            echo "No formatting changes to apply."
+            exit 0
+        fi
+        patch -p0 < "$patch_dest" || \
+            error_exit "Cannot apply patch to local files."
+        git apply -p0 --cached < "$patch_dest" || \
+            error_exit "Cannot apply patch to git staged changes."
+    fi
+
+fi
