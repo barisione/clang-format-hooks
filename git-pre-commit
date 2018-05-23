@@ -144,12 +144,13 @@ fi
 
 # The code is not formatted correctly.
 
-readonly interactive=$(cd "$top_dir" && git config --bool hooks.clangFormatDiffInteractive)
+interactive=$(cd "$top_dir" && git config --bool hooks.clangFormatDiffInteractive)
 if [ "$interactive" != false ]; then
     # Interactive is the default, so anything that is not false is converted to
     # true, including possibly invalid values.
     interactive=true
 fi
+readonly interactive
 
 if [ "$interactive" = false ]; then
     echo "The staged content is not formatted correctly."
