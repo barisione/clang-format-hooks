@@ -145,10 +145,10 @@ fi
 if [ "$whole_file" = false ]; then
     declare format_diff="${CLANG_FORMAT_DIFF:-}"
     if [ -z "$format_diff" ]; then
-        format_diff=$(which clang-format-diff)
+        format_diff=$(which clang-format-diff 2> /dev/null)
     fi
     if [ -z "$format_diff" ]; then
-        format_diff=$(which clang-format-diff.py)
+        format_diff=$(which clang-format-diff.py 2> /dev/null)
     fi
     if [ -z "$format_diff" ]; then
         readonly format_diff_fedora_path=/usr/share/clang/clang-format-diff.py
