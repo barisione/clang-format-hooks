@@ -173,9 +173,11 @@ echo " [c]: Cancel the commit"
 echo " [?]: Show help"
 echo
 
+readonly tty=${PRE_COMMIT_HOOK_TTY:-/dev/tty}
+
 while true; do
     echo -n "What would you like to do? [a/f/c/?] "
-    read -r answer < /dev/tty
+    read -r answer < "$tty"
     case "$answer" in
 
         [aA] )
@@ -198,7 +200,7 @@ while true; do
             echo "You can always abort by quitting your editor with no commit message."
             echo
             echo -n "Press return to continue."
-            read -r < /dev/tty
+            read -r < "$tty"
             exit 0
             ;;
 
