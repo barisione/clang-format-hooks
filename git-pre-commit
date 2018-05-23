@@ -211,7 +211,7 @@ while true; do
             error_exit "Commit aborted as requested."
             ;;
 
-        ? )
+        \? )
             echo
             show_help
             echo
