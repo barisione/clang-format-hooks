@@ -185,7 +185,8 @@ if [ "$whole_file" = true ]; then
     [ "$staged" = false ] || \
         error_exit "--staged/--cached only make sense when applying to a diff."
 
-    declare format_args=("$format" "-style=file")
+    read -r -a format_args <<< "$format"
+    fomrat_args+=("-style=file")
     [ "$in_place" = true ] && format_args+=("-i")
 
     "${format_args[@]}" "$@"
