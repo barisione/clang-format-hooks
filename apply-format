@@ -210,7 +210,8 @@ else # Diff-only.
     read -r -a format_diff_args <<< "$format_diff"
     [ "$in_place" = true ] && format_diff_args+=("-i")
 
-    "${git_args[@]}" "$@" | "${format_diff_args[@]}" -p1 -style=file -iregex='^.*\.(c|cpp|cxx|cc|h)$' > "$patch_dest"
+    "${git_args[@]}" -- "$@" | "${format_diff_args[@]}" -p1 -style=file -iregex='^.*\.(c|cpp|cxx|cc|h)$' > "$patch_dest" || \
+        exit 1
 
     if [ "$apply_to_staged" = true ]; then
         if [ ! -s "$patch_dest" ]; then
