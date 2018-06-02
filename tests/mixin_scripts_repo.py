@@ -47,7 +47,7 @@ class ScriptsRepoMixin(GitMixin):
             if self.scripts_dir:
                 testutils.makedirs(self.scripts_dir)
             shutil.copy(os.path.join(src_dir, 'apply-format'), self.apply_format_path)
-            shutil.copy(os.path.join(src_dir, 'git-pre-commit'), self.pre_commit_hook_path)
+            shutil.copy(os.path.join(src_dir, 'git-pre-commit-format'), self.pre_commit_hook_path)
 
     def tearDown(self):
         super(ScriptsRepoMixin, self).tearDown()
@@ -88,7 +88,7 @@ class ScriptsRepoMixin(GitMixin):
         '''
         The path of the git pre-commit hook script, relative to the repository top level dir.
         '''
-        return self._get_script_path('git-pre-commit')
+        return self._get_script_path('git-pre-commit-format')
 
     def write_style(self, style_dict):
         content_list = ['{}: {}'.format(k, v) for k, v in style_dict.items()]

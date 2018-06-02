@@ -182,7 +182,7 @@ class HookTestCaseBase(ScriptsRepoMixin):
             # This is particularly interesting in case of submodules as we need to install a hook
             # for the outer repository.
             with WorkDir(self.scripts_dir):
-                subprocess.check_output(['./git-pre-commit', 'install'],
+                subprocess.check_output(['./git-pre-commit-format', 'install'],
                                         stderr=subprocess.STDOUT,
                                         encoding='utf-8')
 
