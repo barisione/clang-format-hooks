@@ -88,7 +88,7 @@ class ScriptsRepoMixin(GitMixin):
         '''
         The path of the git pre-commit hook script, relative to the repository top level dir.
         '''
-        return self._get_script_path('git-pre-commit-hook')
+        return self._get_script_path('git-pre-commit')
 
     def write_style(self, style_dict):
         content_list = ['{}: {}'.format(k, v) for k, v in style_dict.items()]
