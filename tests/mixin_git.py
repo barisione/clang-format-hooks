@@ -98,7 +98,16 @@ class GitMixin(mixin_tempdir.TempDirMixin):
         repo_dir = os.path.join(self.make_tmp_sub_dir(), 'new')
         subprocess.check_output(['git', 'init', repo_dir],
                                 stderr=subprocess.STDOUT)
-        return GitRepository(repo_dir)
+        repo = GitRepository(repo_dir)
+
+        # This is just so there is at least one commit so git commands don't break
+        # randomly.
+        dummy = 'dummy'
+        repo.write_file(dummy, 'Dummy file. Ignore this.')
+        repo.add(dummy)
+        repo.commit()
+
+        return repo
 
     def clone_repo(self, original_repo):
         repo_dir = os.path.join(self.make_tmp_sub_dir(), 'cloned')
