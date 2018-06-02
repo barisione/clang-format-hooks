@@ -8,8 +8,8 @@ import unittest
 from mixin_scripts_repo import (
     ScriptsRepoMixin,
     CloneRepoMixin,
-    #SubmoduleMixin,
-    #CopiedFilesMixin,
+    SubmoduleMixin,
+    CopiedFilesMixin,
     )
 
 SIMPLE = '''\
@@ -179,15 +179,13 @@ class HookClonedTestCase(CloneRepoMixin,
     pass
 
 
-# Not working yet:
-
-#class HookSubmoduleTestCase(SubmoduleMixin,
-#                            HookTestCaseBase,
-#                            unittest.TestCase):
-#    pass
+class HookSubmoduleTestCase(SubmoduleMixin,
+                            HookTestCaseBase,
+                            unittest.TestCase):
+    pass
 
 
-#class HookCopiedScriptsTestCase(CopiedFilesMixin,
-#                                HookTestCaseBase,
-#                                unittest.TestCase):
-#    pass
+class HookCopiedScriptsTestCase(CopiedFilesMixin,
+                                HookTestCaseBase,
+                                unittest.TestCase):
+    pass
