@@ -102,6 +102,7 @@ class CloneRepoMixin(ScriptsRepoMixin):
     '''
 
     def config_repo(self):
+        self.scripts_dir = '.'
         return self.clone_this_repo()
 
     def clone_this_repo(self):

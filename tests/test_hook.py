@@ -5,6 +5,10 @@ import os
 import subprocess
 import unittest
 
+from testutils import (
+    WorkDir,
+    )
+
 from mixin_scripts_repo import (
     ScriptsRepoMixin,
     CloneRepoMixin,
@@ -171,6 +175,28 @@ class HookTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(self.repo.read_file(filename), SIMPLE)
         # There is no commit.
         self.assertEqual(old_head, self.repo.git_get_head())
+
+    def test_install_from_scripts_dir(self):
+        with self.repo.work_dir():
+            # We go into the directory where the scripts are and intall from there.
+            # This is particularly interesting in case of submodules as we need to install a hook
+            # for the outer repository.
+            with WorkDir(self.scripts_dir):
+                subprocess.check_output(['./git-pre-commit', 'install'],
+                                        stderr=subprocess.STDOUT,
+                                        encoding='utf-8')
+
+            # Everything should still work.
+            filename = 'foo.c'
+            self.repo.write_file(filename, SIMPLE)
+            self.repo.add(filename)
+
+            output = self.repo.commit(input_text='a\n')
+            self.assertIn('The staged content is not formatted correctly.\n', output)
+
+            # The file on disk is updated.
+            self.assertEqual(self.repo.read_file(filename), SIMPLE_FIXED)
+
 
 
 class HookClonedTestCase(CloneRepoMixin,

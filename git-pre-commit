@@ -14,8 +14,27 @@ function error_exit() {
     exit 1
 }
 
-readonly top_dir=$(git rev-parse --show-toplevel) || \
-    error_exit "You need to be in the git repository to run this script."
+# Find the top-level git directory (taking into account we could be in a submodule).
+declare git_test_dir=.
+declare top_dir
+while true; do
+    top_dir=$(cd "$git_test_dir"; git rev-parse --show-toplevel) || \
+        error_exit "You need to be in the git repository to run this script."
+
+    [ -e "$top_dir/.git" ] || \
+        error_exit "No .git directory in $top_dir."
+
+    if [ -d "$top_dir/.git" ]; then
+        # We are done! top_dir is the root git directory.
+        break
+    else
+        # We are in a submodule if .git is a file!
+        git_test_dir="$git_test_dir/.."
+    fi
+done
+
+readonly top_dir
+
 readonly hook_path="$top_dir/.git/hooks/pre-commit"
 readonly me=$(realpath "$0")
 readonly me_relative_to_hook=$(realpath --relative-to="$(dirname "$hook_path")" "$me")
