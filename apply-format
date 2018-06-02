@@ -143,27 +143,47 @@ fi
 
 # clang-format-diff.
 if [ "$whole_file" = false ]; then
-    declare format_diff="${CLANG_FORMAT_DIFF:-}"
-    if [ -z "$format_diff" ]; then
-        format_diff=$(which clang-format-diff 2> /dev/null)
-    fi
-    if [ -z "$format_diff" ]; then
-        format_diff=$(which clang-format-diff.py 2> /dev/null)
-    fi
-    if [ -z "$format_diff" ]; then
-        readonly format_diff_fedora_path=/usr/share/clang/clang-format-diff.py
-        if [ -e "$format_diff_fedora_path" ]; then
-            format_diff="python $format_diff_fedora_path"
+    invalid="/dev/null/invalid/path"
+    # Did the use specify a path?
+    paths_to_try=( \
+        "${CLANG_FORMAT_DIFF:-$invalid}" \
+        )
+    # Packages directly from upstream.
+    # We try these first as they are probably newer than the system ones.
+    for f in $(compgen -G "/usr/share/clang/clang-format-*/clang-format-diff.py" | sort -V -r); do
+        paths_to_try+=("$f")
+    done
+    # Maybe it's in the $PATH already? This is true for Ubuntu and Debian.
+    paths_to_try+=( \
+        "$(which clang-format-diff 2> /dev/null || echo "$invalid")" \
+        "$(which clang-format-diff.py 2> /dev/null || echo "$invalid")" \
+        )
+    # Fedora.
+    paths_to_try+=( \
+        /usr/share/clang/clang-format-diff.py \
+        )
+    # Homebrew.
+    for f in $(compgen -G "/usr/local/Cellar/clang-format/*/share/clang/clang-format-diff.py" | sort -n -r); do
+        paths_to_try+=("$f")
+    done
+
+    declare format_diff=
+    for path in "${paths_to_try[@]}"; do
+        if [ -e "$path" ]; then
+            # Found!
+            format_diff="$path"
+            break
         fi
-    fi
+    done
 
     if [ -z "$format_diff" ]; then
         error_exit \
             $'Cannot find clang-format-diff which should be shipped as part of the same\n' \
             $'package where clang-format is.\n' \
             $'\n' \
-            $'Please, find out where clang-format-diff is in your distro and modify this\n' \
-            $'script to support that. It\'s sometimes called clang-format-diff.py.\n' \
+            $'Please find out where clang-format-diff is in your distro and report an issue\n' \
+            $'at https://github.com/barisione/clang-format-hooks/issues with details about\n' \
+            $'your operating system and setup.\n' \
             $'\n' \
             $'You can also speficy your own path for clang-format-diff by setting the\n' \
             $'$CLANG_FORMAT_DIFF environment variable, for instance:\n' \
@@ -171,6 +191,12 @@ if [ "$whole_file" = false ]; then
             $'    CLANG_FORMAT_DIFF="python /.../clang-format-diff.py" \\\n' \
             $'        ' "$0"
     fi
+
+    if [ ! -x "$format_diff" ]; then
+        format_diff="python $format_diff"
+    fi
+
+    readonly format_diff
 fi
 
 
