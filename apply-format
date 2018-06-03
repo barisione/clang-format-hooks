@@ -260,7 +260,7 @@ else # Diff-only.
         | "${format_diff_args[@]}" \
             -p1 \
             -style="$style" \
-            -iregex='^.*\.(c|cpp|cxx|cc|h)$' \
+            -iregex='^.*\.(c|cpp|cxx|cc|h|m|mm|js|java)$' \
             > "$patch_dest" \
         || exit 1
 
