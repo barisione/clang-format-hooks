@@ -24,50 +24,60 @@ function error_exit() {
 ########################
 
 function show_help() {
+    if which tput > /dev/null 2>&1; then
+        local -r b=$(tput bold)
+        local -r i=$(tput sitm)
+        local -r n=$(tput sgr0)
+    else
+        local -r b=
+        local -r i=
+        local -r n=
+    fi
+
     cat << EOF
-SYNOPSIS
+${b}SYNOPSIS${n}
 
     To reformat git diffs:
 
-        $0 [OPTIONS] [FILES]
+        ${i}$0 [OPTIONS] [FILES]${n}
 
     To reformat whole files, including unchanged parts:
 
-        $0 [-f | --whole-file] FILES
+        ${i}$0 [-f | --whole-file] FILES${n}
 
-DESCRIPTION
+${b}DESCRIPTION${n}
 
     Reformat C or C++ code to match a specified formatting style.
 
     This command can either work on diffs, to reformat only changed parts of
     the code, or on whole files (if -f or --whole-file is used).
 
-    -f, --whole-file
+    ${b}-f, --whole-file${n}
         Reformat the specified files completely (including parts you didn't
         change).
         The patch is printed on stdout by default. Use -i if you want to modify
         the files on disk.
 
-    --staged, --cached
+    ${b}--staged, --cached${n}
         Reformat only code which is staged for commit.
         The patch is printed on stdout by default. Use -i if you want to modify
         the files on disk.
 
-    -i
+    ${b}-i${n}
         Reformat the code and apply the changes to the files on disk (instead
         of just printing the patch on stdout).
 
-    --apply-to-staged
+    ${b}--apply-to-staged${n}
         This is like specifying both --staged and -i, but the formatting
         changes are also staged for commit (so you can just use "git commit"
         to commit what you planned to, but formatted correctly).
 
-    --style STYLE
+    ${b}--style STYLE${n}
         The style to use for reformatting code.
         If no style is specified, then it's assumed there's a .clang-format
         file in the current directory or one of its parents.
 
-    --help, -h, -?
+    ${b}--help, -h, -?${n}
         Show this help.
 EOF
 }

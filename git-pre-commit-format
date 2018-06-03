@@ -89,12 +89,22 @@ function uninstall() {
 }
 
 function show_help() {
+    if which tput > /dev/null 2>&1; then
+        local -r b=$(tput bold)
+        local -r i=$(tput sitm)
+        local -r n=$(tput sgr0)
+    else
+        local -r b=
+        local -r i=
+        local -r n=
+    fi
+
     cat << EOF
-SYNOPSIS
+${b}SYNOPSIS${n}
 
     $0 [install|uninstall]
 
-DESCRIPTION
+${b}DESCRIPTION${n}
 
     Git hook to verify and fix formatting before committing.
 
@@ -104,22 +114,22 @@ DESCRIPTION
     To setup the hook run this script passing "install" on the command line.
     To remove the hook run passing "uninstall".
 
-CONFIGURATION
+${b}CONFIGURATION${n}
 
     You can configure the hook using the "git config" command.
 
-    hooks.clangFormatDiffInteractive (default: true)
+    ${b}hooks.clangFormatDiffInteractive${n} (default: true)
         By default, the hook requires user input. If you don't run git from a
         terminal, you can disable the interactive prompt with:
-            $ git config hooks.clangFormatDiffInteractive false
+            ${i}\$ git config hooks.clangFormatDiffInteractive false${n}
 
-    hooks.clangFormatDiffStyle (default: file)
+    ${b}hooks.clangFormatDiffStyle${n} (default: file)
         Unless a different style is specified, the hook expects a file named
         .clang-format to exist in the repository. This file should contain the
         configuration for clang-format.
         You can specify a different style (in this example, the WebKit one)
         with:
-            $ git config hooks.clangFormatDiffStyle WebKit
+            ${i}\$ git config hooks.clangFormatDiffStyle WebKit${n}
 EOF
 }
 
