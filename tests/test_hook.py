@@ -145,7 +145,7 @@ class HookTestCaseBase(ScriptsRepoMixin):
             with WorkDir(self.scripts_dir):
                 subprocess.check_output(['./git-pre-commit-format', 'install'],
                                         stderr=subprocess.STDOUT,
-                                        encoding='utf-8')
+                                        universal_newlines=True)
 
             # Everything should still work.
             filename = 'foo.c'

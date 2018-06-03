@@ -33,7 +33,7 @@ class GitRepository:
 
     def check_output(self, *args, **kwargs):
         kwargs['stderr'] = subprocess.STDOUT
-        kwargs['encoding'] = 'utf-8'
+        kwargs['universal_newlines'] = True
         with self.work_dir():
             return subprocess.check_output(args, **kwargs)
 
@@ -119,7 +119,7 @@ class GitMixin(mixin_tempdir.TempDirMixin):
     def this_repo_path():
         with testutils.WorkDir(os.path.dirname(__file__)):
             path = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'],
-                                           encoding='utf-8').strip()
+                                           universal_newlines=True).strip()
             assert path
             assert os.path.isdir(path)
             return path
