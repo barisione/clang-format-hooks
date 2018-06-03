@@ -23,6 +23,8 @@ class HookTestCaseBase(ScriptsRepoMixin):
     Test the git hook script.
     '''
 
+    KEY_CONFIG_INTERATIVE = 'hooks.clangFormatDiffInteractive'
+
     def hook_call(self, *args):
         assert self.repo
         return self.repo.check_call(os.path.join('.', self.pre_commit_hook_path), *args)
@@ -30,6 +32,10 @@ class HookTestCaseBase(ScriptsRepoMixin):
     def hook_output(self, *args):
         assert self.repo
         return self.repo.check_output(os.path.join('.', self.pre_commit_hook_path), *args)
+
+    def config_set(self, key, value):
+        assert self.repo
+        return self.repo.check_output('git', 'config', key, value)
 
     def install(self, allow_errors=False):
         try:
@@ -132,6 +138,18 @@ class HookTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
         # There is no commit.
         self.assertEqual(old_head, self.repo.git_get_head())
+
+    def test_commit_non_interactive(self):
+        self.install()
+        self.config_set(self.KEY_CONFIG_INTERATIVE, 'false')
+
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.repo.commit()
+
+        # The file on disk is unchanged.
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
 
     def test_install_from_scripts_dir(self):
         with self.repo.work_dir():
