@@ -62,18 +62,16 @@ class HookTestCaseBase(ScriptsRepoMixin):
     def test_commit_no_errors(self):
         self.install()
 
-        filename = 'foo.c'
-        self.repo.write_file(filename, data.FIXED)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.FIXED)
+        self.repo.add(data.FILENAME)
 
         self.repo.commit()
 
     def test_commit_fix_errors(self):
         self.install()
 
-        filename = 'foo.c'
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
 
         old_head = self.repo.git_get_head()
 
@@ -81,11 +79,11 @@ class HookTestCaseBase(ScriptsRepoMixin):
         # We don't check for data.PATCH as colordiff may add escapes.
         self.assertIn('before formatting', self.simplify_diff(output))
         self.assertIn('The staged content is not formatted correctly.\n', output)
-        self.assertIn('patching file {}'.format(filename), output)
+        self.assertIn('patching file {}'.format(data.FILENAME), output)
         self.assertEqual(output.count('What would you like to do?'), 1)
 
         # The file on disk is updated.
-        self.assertEqual(self.repo.read_file(filename), data.FIXED)
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.FIXED)
         # There was a commit.
         self.assertNotEqual(old_head, self.repo.git_get_head())
         # The commit contains the fixed file.
@@ -95,9 +93,8 @@ class HookTestCaseBase(ScriptsRepoMixin):
     def test_commit_force(self):
         self.install()
 
-        filename = 'foo.c'
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
 
         old_head = self.repo.git_get_head()
 
@@ -107,7 +104,7 @@ class HookTestCaseBase(ScriptsRepoMixin):
         self.assertIn('Press return to continue.', output)
 
         # The file on disk is unchanged.
-        self.assertEqual(self.repo.read_file(filename), data.CODE)
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
         # There was a commit.
         self.assertNotEqual(old_head, self.repo.git_get_head())
         # The commit contains the original non-fixed file.
@@ -117,9 +114,8 @@ class HookTestCaseBase(ScriptsRepoMixin):
     def test_commit_cancel(self):
         self.install()
 
-        filename = 'foo.c'
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
 
         old_head = self.repo.git_get_head()
 
@@ -133,7 +129,7 @@ class HookTestCaseBase(ScriptsRepoMixin):
         self.assertIn('Commit aborted as requested.', output)
 
         # The file on disk is unchanged.
-        self.assertEqual(self.repo.read_file(filename), data.CODE)
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
         # There is no commit.
         self.assertEqual(old_head, self.repo.git_get_head())
 
@@ -148,15 +144,14 @@ class HookTestCaseBase(ScriptsRepoMixin):
                                         universal_newlines=True)
 
             # Everything should still work.
-            filename = 'foo.c'
-            self.repo.write_file(filename, data.CODE)
-            self.repo.add(filename)
+            self.repo.write_file(data.FILENAME, data.CODE)
+            self.repo.add(data.FILENAME)
 
             output = self.repo.commit(input_text='a\n')
             self.assertIn('The staged content is not formatted correctly.\n', output)
 
             # The file on disk is updated.
-            self.assertEqual(self.repo.read_file(filename), data.FIXED)
+            self.assertEqual(self.repo.read_file(data.FILENAME), data.FIXED)
 
 
 

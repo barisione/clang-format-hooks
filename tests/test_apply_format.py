@@ -44,9 +44,8 @@ class FormatTestCaseBase(ScriptsRepoMixin):
             self.assertIn('Unknown argument', exc.output)
 
     def test_one_file(self):
-        filename = 'foo.c'
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
         # There's nothing unstaged to format.
         output = self.apply_format_output()
         self.assertEqual(output, '')
@@ -56,13 +55,13 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
         # Adding more stuff doesn't check what's staged.
-        self.repo.write_file(filename, data.MODIFIED)
+        self.repo.write_file(data.FILENAME, data.MODIFIED)
         output = self.apply_format_output('--staged')
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
         # Adding more stuff doesn't check what'
         # But adding more stuff will change the output.
-        self.repo.add(filename)
+        self.repo.add(data.FILENAME)
         output = self.apply_format_output('--staged')
         self.assertNotEqual(self.simplify_diff(output), data.PATCH)
 
@@ -74,12 +73,10 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(output, '')
 
     def test_in_place_unstaged(self):
-        filename = 'foo.c'
-
         # Add unstaged content.
-        self.repo.write_file(filename, '')
-        self.repo.add(filename)
-        self.repo.write_file(filename, data.CODE)
+        self.repo.write_file(data.FILENAME, '')
+        self.repo.add(data.FILENAME)
+        self.repo.write_file(data.FILENAME, data.CODE)
         output = self.apply_format_output()
         self.assertEqual(self.simplify_diff(output), data.PATCH)
         output = self.apply_format_output('--staged')
@@ -96,11 +93,9 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(output, '')
 
     def test_in_place_staged(self):
-        filename = 'foo.c'
-
         # Add staged content.
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
         output = self.apply_format_output()
         self.assertEqual(output, '')
         output = self.apply_format_output('--staged')
@@ -125,14 +120,12 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(output, '')
 
     def test_in_place_staged_modified(self):
-        filename = 'foo.c'
-
         # Write the original file and stage it.
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
 
         # Now modify it without staging it.
-        self.repo.write_file(filename, data.MODIFIED)
+        self.repo.write_file(data.FILENAME, data.MODIFIED)
 
         # Fix the staged part.
         output = self.apply_format_output('--staged', '-i')
@@ -145,39 +138,36 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(output, '')
 
     def test_two_files(self):
-        filename1 = 'foo.c'
-        filename2 = 'bar.c'
-
         # One empty file does nothing.
-        self.repo.write_file(filename1, '')
-        self.repo.add(filename1)
+        self.repo.write_file(data.FILENAME, '')
+        self.repo.add(data.FILENAME)
         output = self.apply_format_output('--staged')
         self.assertEqual(output, '')
 
         # Another empty file does nothing.
-        self.repo.write_file(filename2, '')
-        self.repo.add(filename2)
+        self.repo.write_file(data.FILENAME_ALT, '')
+        self.repo.add(data.FILENAME_ALT)
         output = self.apply_format_output('--staged')
         self.assertEqual(output, '')
 
         # If only one file contains content which needs formatting, then we only get that.
-        self.repo.write_file(filename1, data.CODE)
+        self.repo.write_file(data.FILENAME, data.CODE)
         output = self.apply_format_output()
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
         # Two files need changes.
-        self.repo.write_file(filename2, data.CODE)
+        self.repo.write_file(data.FILENAME_ALT, data.CODE)
         output = self.apply_format_output()
-        douple_patch = data.PATCH + data.PATCH.replace(filename1, filename2)
+        douple_patch = data.PATCH + data.PATCH.replace(data.FILENAME, data.FILENAME_ALT)
         self.assertEqual(self.simplify_diff(output), douple_patch)
 
         # Stage the second file. Two need changes, one is staged the other isn't.
-        self.repo.add(filename2)
+        self.repo.add(data.FILENAME_ALT)
         output = self.apply_format_output()
         self.assertEqual(self.simplify_diff(output), data.PATCH)
         output = self.apply_format_output('--cached') # --cached == --staged
         self.assertEqual(self.simplify_diff(output),
-                         data.PATCH.replace(filename1, filename2))
+                         data.PATCH.replace(data.FILENAME, data.FILENAME_ALT))
 
         # Commit the second one. There's still the first file (unstaged) neeeding formatting.
         self.repo.commit()
@@ -187,99 +177,82 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(output, '')
 
     def test_files_on_cmd_line(self):
-        filename1 = 'foo.c'
-        filename2 = 'bar.c'
-
         # Write and add both.
-        self.repo.write_file(filename1, data.CODE)
-        self.repo.add(filename1)
-        self.repo.write_file(filename2, data.CODE)
-        self.repo.add(filename2)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+        self.repo.write_file(data.FILENAME_ALT, data.CODE)
+        self.repo.add(data.FILENAME_ALT)
 
         # Get the diff only for one file.
-        output = self.apply_format_output('--staged', filename1)
+        output = self.apply_format_output('--staged', data.FILENAME)
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
     def test_dash_dash(self):
-        filename = 'foo.c'
-
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
-        output = self.apply_format_output('--staged', '--', filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+        output = self.apply_format_output('--staged', '--', data.FILENAME)
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
-        output = self.apply_format_output('--', '--staged', filename)
+        output = self.apply_format_output('--', '--staged', data.FILENAME)
         # "git diff -- --invalid FOO" just ignores --invalid.
         self.assertEqual(output, '')
 
     def test_style_llvm(self):
-        filename = 'foo.c'
-
         self.write_style({
             'BasedOnStyle': 'llvm',
             })
 
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
-        output = self.apply_format_output('--staged', filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+        output = self.apply_format_output('--staged', data.FILENAME)
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
     def test_style_webkit(self):
-        filename = 'foo.c'
-
         self.write_style({
             'BasedOnStyle': 'WebKit',
             })
 
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
-        output = self.apply_format_output('--staged', filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+        output = self.apply_format_output('--staged', data.FILENAME)
         self.assertEqual(self.simplify_diff(output), data.PATCH_WEBKIT)
 
     def test_style_webkit_command_line(self):
-        filename = 'foo.c'
-
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
-        output = self.apply_format_output('--staged', filename, '--style', 'WebKit')
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+        output = self.apply_format_output('--staged', data.FILENAME, '--style', 'WebKit')
         self.assertEqual(self.simplify_diff(output), data.PATCH_WEBKIT)
 
     def test_style_llvm_indent8(self):
-        filename = 'foo.c'
-
         self.write_style({
             'BasedOnStyle': 'llvm',
             'IndentWidth': '8',
             })
 
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
-        output = self.apply_format_output('--staged', filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+        output = self.apply_format_output('--staged', data.FILENAME)
         self.assertEqual(self.simplify_diff(output), data.PATCH_LLVM_INDENT8)
 
     def test_invalid_config(self):
-        filename = 'foo.c'
-
         self.write_style({
             'BasedOnStyle': 'llvm',
             'ThisIsAnInvalidKey': 'true',
             })
 
-        self.repo.write_file(filename, data.CODE)
-        self.repo.add(filename)
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
 
         try:
-            self.apply_format_output('--staged', '--', filename)
+            self.apply_format_output('--staged', '--', data.FILENAME)
             self.assertTrue(False)
         except subprocess.CalledProcessError as exc:
             self.assertIn('unknown key', exc.output)
 
     def test_whole_file(self):
-        filename = 'foo.c'
-
         for opt in ('--whole-file', '-f'):
-            self.repo.write_file(filename, data.CODE)
-            output = self.apply_format_output(opt, filename)
+            self.repo.write_file(data.FILENAME, data.CODE)
+            output = self.apply_format_output(opt, data.FILENAME)
             self.assertEqual(output, data.FIXED)
 
 

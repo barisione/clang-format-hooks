@@ -1,3 +1,6 @@
+FILENAME = 'foo.c'
+FILENAME_ALT = 'bar.c'
+
 CODE = '''\
 int main() {
   if (a) {
