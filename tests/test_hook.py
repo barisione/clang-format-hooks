@@ -151,6 +151,23 @@ class HookTestCaseBase(ScriptsRepoMixin):
         # The file on disk is unchanged.
         self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
 
+    def test_commit_no_verify(self):
+        self.install()
+
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+
+        old_head = self.repo.git_get_head()
+        self.repo.commit(verify=False)
+
+        # The file on disk is unchanged.
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
+        # There was a commit.
+        self.assertNotEqual(old_head, self.repo.git_get_head())
+        # The commit contains the original non-fixed file.
+        commit_diff = self.simplify_diff(self.repo.git_show())
+        self.assertIn(data.NON_FIXED_COMMIT, commit_diff)
+
     def test_install_from_scripts_dir(self):
         with self.repo.work_dir():
             # We go into the directory where the scripts are and intall from there.
