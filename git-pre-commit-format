@@ -181,7 +181,11 @@ if [ "$interactive" = false ]; then
     exit 1
 fi
 
-cat "$patch"
+if which colordiff 2> /dev/null; then
+    colordiff < "$patch"
+else
+    cat "$patch"
+fi
 
 echo
 echo "The staged content is not formatted correctly."

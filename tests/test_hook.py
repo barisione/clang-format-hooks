@@ -119,6 +119,8 @@ class HookTestCaseBase(ScriptsRepoMixin):
         old_head = self.repo.git_get_head()
 
         output = self.repo.commit(input_text='a\n')
+        # We don't check for SIMPLE_PATCH as colordiff may add escapes.
+        self.assertIn('before formatting', self.simplify_diff(output))
         self.assertIn('The staged content is not formatted correctly.\n', output)
         self.assertIn('patching file {}'.format(filename), output)
         self.assertEqual(output.count('What would you like to do?'), 1)
