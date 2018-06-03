@@ -104,9 +104,14 @@ DESCRIPTION
     To setup the hook run this script passing "install" on the command line.
     To remove the hook run passing "uninstall".
 
-    By default, the hook requires user input. If you don't run git from a
-    terminal, you can disable the interactive prompts with:
-        $ git config hooks.clangFormatDiffInteractive false
+CONFIGURATION
+
+    You can configure the hook using the "git config" command.
+
+    hooks.clangFormatDiffInteractive (default: true)
+        By default, the hook requires user input. If you don't run git from a
+        terminal, you can disable the interactive prompt with:
+            $ git config hooks.clangFormatDiffInteractive false
 EOF
 }
 
