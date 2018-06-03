@@ -112,6 +112,14 @@ CONFIGURATION
         By default, the hook requires user input. If you don't run git from a
         terminal, you can disable the interactive prompt with:
             $ git config hooks.clangFormatDiffInteractive false
+
+    hooks.clangFormatDiffStyle (default: file)
+        Unless a different style is specified, the hook expects a file named
+        .clang-format to exist in the repository. This file should contain the
+        configuration for clang-format.
+        You can specify a different style (in this example, the WebKit one)
+        with:
+            $ git config hooks.clangFormatDiffStyle WebKit
 EOF
 }
 
@@ -155,9 +163,11 @@ fi
     $'I expected it here:\n' \
     $'    ' "$apply_format"
 
+readonly style=$(cd "$top_dir" && git config hooks.clangFormatDiffStyle || echo file)
+
 readonly patch=$(mktemp)
 trap '{ rm -f "$patch"; }' EXIT
-"$apply_format" --cached > "$patch" || \
+"$apply_format" --style="$style" --cached > "$patch" || \
     error_exit $'\nThe apply-format script failed.'
 
 if [ "$(wc -l < "$patch")" -eq 0 ]; then

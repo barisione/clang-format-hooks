@@ -24,6 +24,7 @@ class HookTestCaseBase(ScriptsRepoMixin):
     '''
 
     KEY_CONFIG_INTERATIVE = 'hooks.clangFormatDiffInteractive'
+    KEY_CONFIG_STYLE = 'hooks.clangFormatDiffStyle'
 
     def hook_call(self, *args):
         assert self.repo
@@ -167,6 +168,19 @@ class HookTestCaseBase(ScriptsRepoMixin):
         # The commit contains the original non-fixed file.
         commit_diff = self.simplify_diff(self.repo.git_show())
         self.assertIn(data.NON_FIXED_COMMIT, commit_diff)
+
+    def test_commit_style(self):
+        self.install()
+        self.config_set(self.KEY_CONFIG_STYLE, 'WebKit')
+
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+
+        output = self.repo.commit(input_text='a\n')
+        self.assertIn('The staged content is not formatted correctly.\n', output)
+
+        # The file on disk is updated using the specified style.
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.FIXED_WEBKIT)
 
     def test_install_from_scripts_dir(self):
         with self.repo.work_dir():

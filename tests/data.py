@@ -19,6 +19,16 @@ int main() {
 }
 '''
 
+FIXED_WEBKIT = '''\
+int main()
+{
+    if (a) {
+        return a;
+    }
+    return 0;
+}
+'''
+
 FIXED_COMMIT = '''\
 --- /dev/null
 +++ b/foo.c
