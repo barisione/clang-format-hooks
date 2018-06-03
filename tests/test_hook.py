@@ -54,9 +54,9 @@ class HookTestCaseBase(ScriptsRepoMixin):
     def test_install_twice(self):
         self.install()
 
-        res, _ = self.install(allow_errors=True)
+        res, output = self.install(allow_errors=True)
         self.assertFalse(res)
-        #self.assertEqual(output.strip(), 'The hook is already installed.')
+        self.assertEqual(output.strip(), 'The hook is already installed.')
 
     def test_install_already_exists(self):
         self.repo.write_file(os.path.join('.git', 'hooks', 'pre-commit'), '')

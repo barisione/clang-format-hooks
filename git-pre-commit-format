@@ -48,7 +48,18 @@ function is_installed() {
     if [ ! -e "$hook_path" ]; then
         echo nothing
     else
-        readonly existing_hook_target=$(readlink -m -- "$hook_path")
+        if [[ "$OSTYPE" =~ darwin.* ]]; then
+            # macOS's readlink doesn't have -m, if greadlink is installed we use it.
+            readlink=greadlink
+            if ! which "$readlink" > /dev/null 2>&1; then
+                # Assume it's the same.
+                echo installed
+                return
+            fi
+        else
+            readlink=readlink
+        fi
+        readonly existing_hook_target=$("$readlink" -m -- "$hook_path")
         if [ "$existing_hook_target" = "$me" ]; then
             # Already installed.
             echo installed
