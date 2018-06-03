@@ -181,7 +181,7 @@ if [ "$interactive" = false ]; then
     exit 1
 fi
 
-if which colordiff 2> /dev/null; then
+if which colordiff > /dev/null 2>&1; then
     colordiff < "$patch"
 else
     cat "$patch"
