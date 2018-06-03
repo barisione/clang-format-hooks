@@ -236,6 +236,14 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         output = self.apply_format_output('--staged', filename)
         self.assertEqual(self.simplify_diff(output), data.PATCH_WEBKIT)
 
+    def test_style_webkit_command_line(self):
+        filename = 'foo.c'
+
+        self.repo.write_file(filename, data.CODE)
+        self.repo.add(filename)
+        output = self.apply_format_output('--staged', filename, '--style', 'WebKit')
+        self.assertEqual(self.simplify_diff(output), data.PATCH_WEBKIT)
+
     def test_style_llvm_indent8(self):
         filename = 'foo.c'
 

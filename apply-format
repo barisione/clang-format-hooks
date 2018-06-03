@@ -62,6 +62,11 @@ DESCRIPTION
         changes are also staged for commit (so you can just use "git commit"
         to commit what you planned to, but formatted correctly).
 
+    --style STYLE
+        The style to use for reformatting code.
+        If no style is specified, then it's assumed there's a .clang-format
+        file in the current directory or one of its parents.
+
     --help, -h, -?
         Show this help.
 EOF
@@ -76,6 +81,7 @@ declare whole_file=false
 declare apply_to_staged=false
 declare staged=false
 declare in_place=false
+declare style=file
 while [ $# -gt 0 ]; do
     declare arg="$1"
     shift # Past option.
@@ -95,6 +101,15 @@ while [ $# -gt 0 ]; do
             ;;
         -i )
             in_place=true
+            ;;
+        --style=* )
+            style="${arg//--style=/}"
+            ;;
+        --style )
+            [ $# -gt 0 ] || \
+                error_exit "No argument for --style option."
+            style="$1"
+            shift
             ;;
         -- )
             # Stop processing further arguments.
@@ -119,6 +134,8 @@ if [ ${#positionals[@]} -gt 0 ]; then
     has_positionals=true
 fi
 
+[ -n "$style" ] || \
+    error_exit "If you use --style you need to speficy a valid style."
 
 #######################################
 # Detection of clang-format & friends #
@@ -239,8 +256,13 @@ else # Diff-only.
     read -r -a format_diff_args <<< "$format_diff"
     [ "$in_place" = true ] && format_diff_args+=("-i")
 
-    "${git_args[@]}" -- "$@" | "${format_diff_args[@]}" -p1 -style=file -iregex='^.*\.(c|cpp|cxx|cc|h)$' > "$patch_dest" || \
-        exit 1
+    "${git_args[@]}" -- "$@" \
+        | "${format_diff_args[@]}" \
+            -p1 \
+            -style="$style" \
+            -iregex='^.*\.(c|cpp|cxx|cc|h)$' \
+            > "$patch_dest" \
+        || exit 1
 
     if [ "$apply_to_staged" = true ]; then
         if [ ! -s "$patch_dest" ]; then
