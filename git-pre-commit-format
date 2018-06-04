@@ -7,6 +7,8 @@
 # Force variable declaration before access.
 set -u
 
+readonly bash_source="${BASH_SOURCE[0]:-$0}"
+
 if [ -t 1 ] && which tput > /dev/null 2>&1; then
     readonly b=$(tput bold)
     readonly i=$(tput sitm)
@@ -48,7 +50,7 @@ done
 readonly top_dir
 
 readonly hook_path="$top_dir/.git/hooks/pre-commit"
-readonly me=$(realpath "$0")
+readonly me=$(realpath "$bash_source")
 readonly me_relative_to_hook=$(realpath --relative-to="$(dirname "$hook_path")" "$me")
 readonly my_dir=$(dirname "$me")
 readonly apply_format="$my_dir/apply-format"
@@ -115,7 +117,7 @@ function show_help() {
     cat << EOF
 ${b}SYNOPSIS${n}
 
-    $0 [install|uninstall]
+    $bash_source [install|uninstall]
 
 ${b}DESCRIPTION${n}
 
@@ -174,10 +176,10 @@ if [ -z "${GIT_DIR:-}" ] && [ -z "${GIT_INDEX_FILE:-}" ]; then
         $'as a pre-commit git hook.\n' \
         $'\n' \
         $'To install the hook try:\n' \
-        $'    ' "$0" $' install\n' \
+        $'    ' "$bash_source" $' install\n' \
         $'\n' \
         $'For more details on this script try:\n' \
-        $'    ' "$0" $' --help\n'
+        $'    ' "$bash_source" $' --help\n'
 fi
 
 [ -x "$apply_format" ] || \
