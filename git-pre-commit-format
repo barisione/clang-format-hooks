@@ -222,6 +222,8 @@ fi
 if which colordiff > /dev/null 2>&1; then
     colordiff < "$patch"
 else
+    echo "(Install colordiff to see this diff in color!)"
+    echo
     cat "$patch"
 fi
 
