@@ -26,7 +26,7 @@ function error_exit() {
 ########################
 
 function show_help() {
-    if which tput > /dev/null 2>&1; then
+    if [ -t 1 ] && which tput > /dev/null 2>&1; then
         local -r b=$(tput bold)
         local -r i=$(tput sitm)
         local -r n=$(tput sgr0)
