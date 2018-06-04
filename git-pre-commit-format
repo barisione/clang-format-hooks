@@ -7,9 +7,19 @@
 # Force variable declaration before access.
 set -u
 
+if [ -t 1 ] && which tput > /dev/null 2>&1; then
+    readonly b=$(tput bold)
+    readonly i=$(tput sitm)
+    readonly n=$(tput sgr0)
+else
+    readonly b=
+    readonly i=
+    readonly n=
+fi
+
 function error_exit() {
     for str in "$@"; do
-        echo -n "$str" >&2
+        echo -n "$b$str$n" >&2
     done
     echo >&2
 
@@ -102,16 +112,6 @@ function uninstall() {
 }
 
 function show_help() {
-    if [ -t 1 ] && which tput > /dev/null 2>&1; then
-        local -r b=$(tput bold)
-        local -r i=$(tput sitm)
-        local -r n=$(tput sgr0)
-    else
-        local -r b=
-        local -r i=
-        local -r n=
-    fi
-
     cat << EOF
 ${b}SYNOPSIS${n}
 
@@ -210,25 +210,25 @@ fi
 readonly interactive
 
 if [ "$interactive" = false ]; then
-    echo "The staged content is not formatted correctly."
+    echo "${b}The staged content is not formatted correctly.${n}"
     echo "You can fix the formatting with:"
-    echo "    $ ./$apply_format_relative_to_top_dir --apply-to-staged"
+    echo "    ${i}\$ ./$apply_format_relative_to_top_dir --apply-to-staged${n}"
     echo
     echo "You can also make this script interactive (if you use git from a terminal) with:"
-    echo "    $ git config hooks.clangFormatDiffInteractive true"
+    echo "    ${i}\$ git config hooks.clangFormatDiffInteractive true${n}"
     exit 1
 fi
 
 if which colordiff > /dev/null 2>&1; then
     colordiff < "$patch"
 else
-    echo "(Install colordiff to see this diff in color!)"
+    echo "${b}(Install colordiff to see this diff in color!)${n}"
     echo
     cat "$patch"
 fi
 
 echo
-echo "The staged content is not formatted correctly."
+echo "${b}The staged content is not formatted correctly.${n}"
 echo "The patch shown above can be applied automatically to fix the formatting."
 echo
 
