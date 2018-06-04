@@ -187,15 +187,30 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         output = self.apply_format_output('--staged', data.FILENAME)
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
-    def test_dash_dash(self):
+    def test_pass_args_to_git(self):
         self.repo.write_file(data.FILENAME, data.CODE)
         self.repo.add(data.FILENAME)
+
         output = self.apply_format_output('--staged', '--', data.FILENAME)
         self.assertEqual(self.simplify_diff(output), data.PATCH)
 
+        # Same but --staged is passed to git without going through our script.
+        # Not very useful, just for testing.
         output = self.apply_format_output('--', '--staged', data.FILENAME)
-        # "git diff -- --invalid FOO" just ignores --invalid.
+        self.assertEqual(self.simplify_diff(output), data.PATCH)
+
+        # "HEAD" is passed to git.
+        output = self.apply_format_output('HEAD')
+        self.assertEqual(self.simplify_diff(output), data.PATCH)
+
+        output = self.apply_format_output('--', 'HEAD')
+        self.assertEqual(self.simplify_diff(output), data.PATCH)
+
+        # The second "--" is passed to git, so it splits revisions from file names.
+        output = self.apply_format_output('--', '--', '--staged', data.FILENAME)
+        # "git diff -- --WHATEVER FOO" just ignores --WHATEVER.
         self.assertEqual(output, '')
+
 
     def test_style_llvm(self):
         self.write_style({

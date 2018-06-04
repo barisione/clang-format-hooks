@@ -41,7 +41,7 @@ ${b}SYNOPSIS${n}
 
     To reformat git diffs:
 
-        ${i}$0 [OPTIONS] [FILES]${n}
+        ${i}$0 [OPTIONS] [FILES-OR-GIT-DIFF-OPTIONS]${n}
 
     To reformat whole files, including unchanged parts:
 
@@ -53,6 +53,17 @@ ${b}DESCRIPTION${n}
 
     This command can either work on diffs, to reformat only changed parts of
     the code, or on whole files (if -f or --whole-file is used).
+
+    ${b}FILES-OR-GIT-DIFF-OPTIONS${n}
+        List of files to consider when applying clang-format to a diff. This is
+        passed to "git diff" as is, so it can also include extra git options or
+        revisions.
+        For example, to apply clang-format on the changes made in the last few
+        revisions you could use:
+            ${i}\$ $0 HEAD~3${n}
+
+    ${b}FILES${n}
+        List of files to completely reformat.
 
     ${b}-f, --whole-file${n}
         Reformat the specified files completely (including parts you didn't
@@ -268,7 +279,7 @@ else # Diff-only.
     read -r -a format_diff_args <<< "$format_diff"
     [ "$in_place" = true ] && format_diff_args+=("-i")
 
-    "${git_args[@]}" -- "$@" \
+    "${git_args[@]}" "$@" \
         | "${format_diff_args[@]}" \
             -p1 \
             -style="$style" \
