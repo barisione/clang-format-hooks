@@ -3,14 +3,21 @@
 
 ***Apply a coding style with `clang-format` only to new code added to an existing code base.***
 
-At [Undo](https://www.undo.io/), we decided to use the `clang-format` tool from the LLVM project to enforce a consistent coding style for new and refactored code, but without changing the existing one.
+At [Undo](https://www.undo.io/), we decided to use the `clang-format` tool to enforce a consistent coding style for new and refactored code, but without changing the existing one.
 
 This is done through a script (`apply-format`) which can be run manually or through a pre-commit `git` hook which is run every time just before code is committed.
 
 <img src="docs/screenshot-hook.png" width="595" height="420"></img>
 
-Installation
-------------
+### What is `clang-format`?
+
+`clang-format` is a tool, part of the LLVM project, which can reformat code to adhere to a configured style.
+
+By default, `clang-format` supports a few pre-defined styles matching the style used by a few important projects, but it's possible to customise specific styles.
+
+
+Setup
+-----
 
 ### Dependencies
 
@@ -20,15 +27,18 @@ Installation
 
 You can optionally install `colordiff` to get nicer output.
 
+### Configuring `clang-format`
+
+`clang-format` needs to be configured to reformat code according to your project's preferred style.<br>
+All the options are described in the official [style options documentation](https://clang.llvm.org/docs/ClangFormatStyleOptions.html), but a great way to start is to use an [interactive configurator](https://zed0.co.uk/clang-format-configurator/).
+
+Once you found the correct style options, just save them in a file called `.clang-format` in the top level directory of your project. From here, the scripts, will load the style automatically.
+
 ### Scripts
 
 Add the `apply-format` and `git-pre-commit-format` scripts to your repositories.
 
 You can either copy them (maybe in a `scripts/` sub-directory) or add this whole repository as a `git` submodule.
-
-### Configuring `clang-format`
-
-***FIXME***
 
 ### Registering the `git` hook
 
