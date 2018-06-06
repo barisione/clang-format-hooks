@@ -34,7 +34,7 @@ function error_exit() {
 declare git_test_dir=.
 declare top_dir
 while true; do
-    top_dir=$(cd "$git_test_dir"; git rev-parse --show-toplevel) || \
+    top_dir=$(cd "$git_test_dir" && git rev-parse --show-toplevel) || \
         error_exit "You need to be in the git repository to run this script."
 
     [ -e "$top_dir/.git" ] || \
