@@ -6,6 +6,8 @@
 
 # Force variable declaration before access.
 set -u
+# Make any failure in piped commands be reflected in the exit code.
+set -o pipefail
 
 readonly bash_source="${BASH_SOURCE[0]:-$0}"
 
