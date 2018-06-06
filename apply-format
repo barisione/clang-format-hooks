@@ -254,7 +254,7 @@ if [ "$whole_file" = true ]; then
         error_exit "--staged/--cached only make sense when applying to a diff."
 
     read -r -a format_args <<< "$format"
-    fomrat_args+=("-style=file")
+    format_args+=("-style=file")
     [ "$in_place" = true ] && format_args+=("-i")
 
     "${format_args[@]}" "$@"
