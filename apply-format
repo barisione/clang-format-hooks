@@ -192,9 +192,9 @@ if [ "$whole_file" = false ]; then
         )
     # .deb packages directly from upstream.
     # We try these first as they are probably newer than the system ones.
-    for f in $(compgen -G "/usr/share/clang/clang-format-*/clang-format-diff.py" | sort -V -r); do
+    while read -r f; do
         paths_to_try+=("$f")
-    done
+    done < <(compgen -G "/usr/share/clang/clang-format-*/clang-format-diff.py" | sort -V -r)
     # Maybe it's in the $PATH already? This is true for Ubuntu and Debian.
     paths_to_try+=( \
         "$(which clang-format-diff 2> /dev/null || echo "$invalid")" \
@@ -205,9 +205,9 @@ if [ "$whole_file" = false ]; then
         /usr/share/clang/clang-format-diff.py \
         )
     # Homebrew.
-    for f in $(compgen -G "/usr/local/Cellar/clang-format/*/share/clang/clang-format-diff.py" | sort -n -r); do
+    while read -r f; do
         paths_to_try+=("$f")
-    done
+    done < <(compgen -G "/usr/local/Cellar/clang-format/*/share/clang/clang-format-diff.py" | sort -n -r)
 
     declare format_diff=
     for path in "${paths_to_try[@]}"; do
