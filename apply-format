@@ -190,7 +190,7 @@ if [ "$whole_file" = false ]; then
     paths_to_try=( \
         "${CLANG_FORMAT_DIFF:-$invalid}" \
         )
-    # Packages directly from upstream.
+    # .deb packages directly from upstream.
     # We try these first as they are probably newer than the system ones.
     for f in $(compgen -G "/usr/share/clang/clang-format-*/clang-format-diff.py" | sort -V -r); do
         paths_to_try+=("$f")
