@@ -51,12 +51,23 @@ done
 
 readonly top_dir
 
-readonly hook_path="$top_dir/.git/hooks/pre-commit"
-readonly me=$(realpath "$bash_source")
-readonly me_relative_to_hook=$(realpath --relative-to="$(dirname "$hook_path")" "$me")
-readonly my_dir=$(dirname "$me")
-readonly apply_format="$my_dir/apply-format"
-readonly apply_format_relative_to_top_dir=$(realpath --relative-to="$top_dir" "$apply_format")
+hook_path="$top_dir/.git/hooks/pre-commit"
+readonly hook_path
+
+me=$(realpath "$bash_source") || exit 1
+readonly me
+
+me_relative_to_hook=$(realpath --relative-to="$(dirname "$hook_path")" "$me") || exit 1
+readonly me_relative_to_hook
+
+my_dir=$(dirname "$me") || exit 1
+readonly my_dir
+
+apply_format="$my_dir/apply-format"
+readonly apply_format
+
+apply_format_relative_to_top_dir=$(realpath --relative-to="$top_dir" "$apply_format") || exit 1
+readonly apply_format_relative_to_top_dir
 
 function is_installed() {
     if [ ! -e "$hook_path" ]; then
@@ -73,7 +84,10 @@ function is_installed() {
         else
             readlink=readlink
         fi
-        readonly existing_hook_target=$("$readlink" -m -- "$hook_path")
+
+        existing_hook_target=$("$readlink" -m -- "$hook_path") || exit 1
+        readonly existing_hook_target
+
         if [ "$existing_hook_target" = "$me" ]; then
             # Already installed.
             echo installed
