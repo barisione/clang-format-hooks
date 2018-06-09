@@ -19,6 +19,8 @@ By default, `clang-format` supports a few pre-defined styles matching the style 
 Setup
 -----
 
+[![Build status](https://api.travis-ci.org/barisione/clang-format-hooks.svg?master)](https://travis-ci.org/barisione/clang-format-hooks)
+
 ### Dependencies
 
 *  **Ubuntu and Debian:** install the `clang-format` package. You can install a newer version with [these instructions](docs/NewerClangFormatUbuntu.md).
