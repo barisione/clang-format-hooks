@@ -12,9 +12,11 @@ python:
 
 before_install:
   - sudo apt-get update
+  # coreutils is for readlink.
   # Python 3.4 for the actual tests.
   - >
     sudo apt-get install -y \
+        coreutils \
         clang-format-3.8 \
         python3.4
 
