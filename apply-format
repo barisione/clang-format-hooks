@@ -188,10 +188,6 @@ fi
 # clang-format-diff.
 if [ "$whole_file" = false ]; then
     invalid="/dev/null/invalid/path"
-    # Did the use specify a path?
-    paths_to_try=( \
-        "${CLANG_FORMAT_DIFF:-$invalid}" \
-        )
     # .deb packages directly from upstream.
     # We try these first as they are probably newer than the system ones.
     while read -r f; do
@@ -216,13 +212,22 @@ if [ "$whole_file" = false ]; then
     done < <(compgen -G "/usr/local/Cellar/clang-format/*/share/clang/clang-format-diff.py" | sort -n -r)
 
     declare format_diff=
-    for path in "${paths_to_try[@]}"; do
-        if [ -e "$path" ]; then
-            # Found!
-            format_diff="$path"
-            break
-        fi
-    done
+
+    # Did the user specify a path?
+    if [ -n "$CLANG_FORMAT_DIFF" ]; then
+        format_diff="$CLANG_FORMAT_DIFF"
+    else
+        for path in "${paths_to_try[@]}"; do
+            if [ -e "$path" ]; then
+                # Found!
+                format_diff="$path"
+                if [ ! -x "$format_diff" ]; then
+                    format_diff="python $format_diff"
+                fi
+                break
+            fi
+        done
+    fi
 
     if [ -z "$format_diff" ]; then
         error_exit \
@@ -238,10 +243,6 @@ if [ "$whole_file" = false ]; then
             $'\n' \
             $'    CLANG_FORMAT_DIFF="python /.../clang-format-diff.py" \\\n' \
             $'        ' "$bash_source"
-    fi
-
-    if [ ! -x "$format_diff" ]; then
-        format_diff="python $format_diff"
     fi
 
     readonly format_diff
