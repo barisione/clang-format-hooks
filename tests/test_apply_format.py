@@ -258,11 +258,14 @@ class FormatTestCaseBase(ScriptsRepoMixin):
         self.repo.write_file(data.FILENAME, data.CODE)
         self.repo.add(data.FILENAME)
 
+        # On old versions of clang-format an invalid config makes the program exit with
+        # a 0 return code...
         try:
-            self.apply_format_output('--staged', '--', data.FILENAME)
-            self.assertTrue(False)
+            output = self.apply_format_output('--staged', '--', data.FILENAME)
         except subprocess.CalledProcessError as exc:
-            self.assertIn('unknown key', exc.output)
+            output = exc.output
+
+        self.assertIn('unknown key', output)
 
     def test_whole_file(self):
         for opt in ('--whole-file', '-f'):
