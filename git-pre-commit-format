@@ -30,6 +30,53 @@ function error_exit() {
     exit 1
 }
 
+# realpath is not available everywhere.
+function realpath() {
+    if [ "${OSTYPE:-}" = "linux-gnu" ]; then
+        readlink -m "$@"
+    else
+        # Python should always be available on macOS.
+        # We use sys.stdout.write instead of print so it's compatible with both Python 2 and 3.
+        python -c "import sys; import os.path; sys.stdout.write(os.path.realpath('''$1''') + '\\n')"
+    fi
+}
+
+# realpath --relative-to is only available on recent Linux distros.
+# This function behaves identical to Python's os.path.relpath() and doesn't need files to exist.
+function rel_realpath() {
+    local -r path=$(realpath "$1")
+    local -r rel_to=$(realpath "${2:-$PWD}")
+
+    # Split the paths into components.
+    IFS='/' read -r -a path_parts <<< "$path"
+    IFS='/' read -r -a rel_to_parts <<< "$rel_to"
+
+    # Search for the first different component.
+    for ((idx=1; idx<${#path_parts[@]}; idx++)); do
+        if [ "${path_parts[idx]}" != "${rel_to_parts[idx]:-}" ]; then
+            break
+        fi
+    done
+
+    result=()
+    # Add the required ".." to the $result array.
+    local -r first_different_idx="$idx"
+    for ((idx=first_different_idx; idx<${#rel_to_parts[@]}; idx++)); do
+        result+=("..")
+    done
+    # Add the required components from $path.
+    for ((idx=first_different_idx; idx<${#path_parts[@]}; idx++)); do
+        result+=("${path_parts[idx]}")
+    done
+
+    if [ "${#result[@]}" -gt 0 ]; then
+        # Join the array with a "/" as separator.
+        echo "$(export IFS='/'; echo "${result[*]}")"
+    else
+        echo .
+    fi
+}
+
 # Find the top-level git directory (taking into account we could be in a submodule).
 declare git_test_dir=.
 declare top_dir
@@ -57,7 +104,7 @@ readonly hook_path
 me=$(realpath "$bash_source") || exit 1
 readonly me
 
-me_relative_to_hook=$(realpath --relative-to="$(dirname "$hook_path")" "$me") || exit 1
+me_relative_to_hook=$(rel_realpath "$me" "$(dirname "$hook_path")") || exit 1
 readonly me_relative_to_hook
 
 my_dir=$(dirname "$me") || exit 1
@@ -66,26 +113,14 @@ readonly my_dir
 apply_format="$my_dir/apply-format"
 readonly apply_format
 
-apply_format_relative_to_top_dir=$(realpath --relative-to="$top_dir" "$apply_format") || exit 1
+apply_format_relative_to_top_dir=$(rel_realpath "$apply_format" "$top_dir") || exit 1
 readonly apply_format_relative_to_top_dir
 
 function is_installed() {
     if [ ! -e "$hook_path" ]; then
         echo nothing
     else
-        if [[ "$OSTYPE" =~ darwin.* ]]; then
-            # macOS's readlink doesn't have -m, if greadlink is installed we use it.
-            readlink=greadlink
-            if ! which "$readlink" > /dev/null 2>&1; then
-                # Assume it's the same.
-                echo installed
-                return
-            fi
-        else
-            readlink=readlink
-        fi
-
-        existing_hook_target=$("$readlink" -m -- "$hook_path") || exit 1
+        existing_hook_target=$(realpath "$hook_path") || exit 1
         readonly existing_hook_target
 
         if [ "$existing_hook_target" = "$me" ]; then
