@@ -1,3 +1,5 @@
+[![Build status](https://api.travis-ci.org/barisione/clang-format-hooks.svg?master)](https://travis-ci.org/barisione/clang-format-hooks)
+
 `clang-format` git hooks
 ========================
 
@@ -18,8 +20,6 @@ By default, `clang-format` supports a few pre-defined styles matching the style 
 
 Setup
 -----
-
-[![Build status](https://api.travis-ci.org/barisione/clang-format-hooks.svg?master)](https://travis-ci.org/barisione/clang-format-hooks)
 
 ### Dependencies
 
