@@ -214,7 +214,7 @@ if [ "$whole_file" = false ]; then
     declare format_diff=
 
     # Did the user specify a path?
-    if [ -n "$CLANG_FORMAT_DIFF" ]; then
+    if [ -n "${CLANG_FORMAT_DIFF:-}" ]; then
         format_diff="$CLANG_FORMAT_DIFF"
     else
         for path in "${paths_to_try[@]}"; do
