@@ -188,6 +188,7 @@ fi
 # clang-format-diff.
 if [ "$whole_file" = false ]; then
     invalid="/dev/null/invalid/path"
+    declare paths_to_try=()
     # .deb packages directly from upstream.
     # We try these first as they are probably newer than the system ones.
     while read -r f; do
