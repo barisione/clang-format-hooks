@@ -1,23 +1,19 @@
-language: python
-
-# We need Python 3 for the tests, but, if we add Python 3 here, it will be installed
-# in a virtualenv where bin/python points to Python 3.
+# We need Python 3 for the tests, but, if we add Python 3 as a language, it will be
+# installed in a virtualenv where bin/python points to Python 3.
 # Then "python clang-format-diff" is spawned and this ends up using Python 2 instead
 # of the required Python 2.7.
-# So we create the virtualenv with Python 2.7 and install manually Python 3 which
-# will be used by the tests.
-# This is hacky, but good enough to get stuff running.
-python:
-  - "2.7"
+language: generic
 
 before_install:
   - sudo apt-get update
   # coreutils is for readlink.
+  # Python 2.7 for clang-format-diff.
   # Python 3.4 for the actual tests.
   - >
     sudo apt-get install -y \
-        coreutils \
         clang-format-3.8 \
+        coreutils \
+        python2.7 \
         python3-pip \
         python3.4
   - sudo pip3 install pylint
