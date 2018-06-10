@@ -4,20 +4,36 @@
 # of the required Python 2.7.
 language: generic
 
+os:
+  - linux
+  - osx
+
+# On Ubuntu:
+# - coreutils is for readlink.
+# - Python 2.7 for clang-format-diff.
+# - Python 3.4 for the actual tests.
 before_install:
-  - sudo apt-get update
-  # coreutils is for readlink.
-  # Python 2.7 for clang-format-diff.
-  # Python 3.4 for the actual tests.
   - >
-    sudo apt-get install -y \
-        clang-format-3.8 \
-        coreutils \
-        python2.7 \
-        python3-pip \
-        python3.4 \
-        shellcheck
-  - sudo pip3 install pylint
+    if [ "$TRAVIS_OS_NAME" = osx ]; then \
+        brew update && \
+        brew upgrade python && \
+        brew install \
+            clang-format \
+            shellcheck \
+            && \
+        sudo pip3 install pylint; \
+    else \
+        sudo apt-get update && \
+        sudo apt-get install -y \
+            clang-format-3.8 \
+            coreutils \
+            python2.7 \
+            python3-pip \
+            python3.4 \
+            shellcheck \
+            && \
+        sudo pip3 install pylint; \
+    fi
 
 script:
   - ./run-checks
