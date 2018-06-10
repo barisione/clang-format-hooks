@@ -15,7 +15,8 @@ before_install:
         coreutils \
         python2.7 \
         python3-pip \
-        python3.4
+        python3.4 \
+        shellcheck
   - sudo pip3 install pylint
 
 script:

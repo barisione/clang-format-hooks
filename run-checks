@@ -10,3 +10,7 @@ echo
 echo "== RUNNING PYLINT =="
 ./tests/run-pylint
 echo
+
+echo "== RUNNING SHELLCHECK =="
+shellcheck apply-format git-pre-commit-format run-checks
+echo
