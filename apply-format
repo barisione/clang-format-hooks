@@ -188,16 +188,22 @@ fi
 # clang-format-diff.
 if [ "$whole_file" = false ]; then
     invalid="/dev/null/invalid/path"
+    if [ "${OSTYPE:-}" = "linux-gnu" ]; then
+        readonly sort_version=-V
+    else
+        # On macOS, sort doesn't have -V.
+        readonly sort_version=-n
+    fi
     declare paths_to_try=()
     # .deb packages directly from upstream.
     # We try these first as they are probably newer than the system ones.
     while read -r f; do
         paths_to_try+=("$f")
-    done < <(compgen -G "/usr/share/clang/clang-format-*/clang-format-diff.py" | sort -V -r)
+    done < <(compgen -G "/usr/share/clang/clang-format-*/clang-format-diff.py" | sort "$sort_version" -r)
     # LLVM official releases (just untarred in /usr/local).
     while read -r f; do
         paths_to_try+=("$f")
-    done < <(compgen -G "/usr/local/clang+llvm*/share/clang/clang-format-diff.py" | sort -V -r)
+    done < <(compgen -G "/usr/local/clang+llvm*/share/clang/clang-format-diff.py" | sort "$sort_version" -r)
     # Maybe it's in the $PATH already? This is true for Ubuntu and Debian.
     paths_to_try+=( \
         "$(which clang-format-diff 2> /dev/null || echo "$invalid")" \
