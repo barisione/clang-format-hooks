@@ -18,7 +18,9 @@ before_install:
     sudo apt-get install -y \
         coreutils \
         clang-format-3.8 \
+        python3-pip \
         python3.4
+  - sudo pip3 install pylint
 
 script:
   - ./run-checks

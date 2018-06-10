@@ -6,3 +6,7 @@ set -e
 echo "== RUNNING TESTS =="
 ./tests/run.py
 echo
+
+echo "== RUNNING PYLINT =="
+./tests/run-pylint
+echo
