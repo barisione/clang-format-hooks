@@ -1,0 +1,8 @@
+#! /bin/bash
+
+# Fail if any test fails.
+set -e
+
+echo "== RUNNING TESTS =="
+./tests/run.py
+echo

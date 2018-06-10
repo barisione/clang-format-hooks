@@ -21,4 +21,4 @@ before_install:
         python3.4
 
 script:
-  - ./tests/run.py
+  - ./run-checks
