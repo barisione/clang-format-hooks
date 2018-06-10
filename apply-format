@@ -30,7 +30,7 @@ function error_exit() {
 ########################
 
 function show_help() {
-    if [ -t 1 ] && which tput > /dev/null 2>&1; then
+    if [ -t 1 ] && hash tput 2> /dev/null; then
         local -r b=$(tput bold)
         local -r i=$(tput sitm)
         local -r n=$(tput sgr0)
@@ -171,7 +171,7 @@ fi
 # clang-format.
 declare format="${CLANG_FORMAT:-}"
 if [ -z "$format" ]; then
-    format=$(which clang-format)
+    format=$(type -p clang-format)
 fi
 
 if [ -z "$format" ]; then
@@ -206,8 +206,8 @@ if [ "$whole_file" = false ]; then
     done < <(compgen -G "/usr/local/clang+llvm*/share/clang/clang-format-diff.py" | sort "$sort_version" -r)
     # Maybe it's in the $PATH already? This is true for Ubuntu and Debian.
     paths_to_try+=( \
-        "$(which clang-format-diff 2> /dev/null || echo "$invalid")" \
-        "$(which clang-format-diff.py 2> /dev/null || echo "$invalid")" \
+        "$(type -p clang-format-diff 2> /dev/null || echo "$invalid")" \
+        "$(type -p clang-format-diff.py 2> /dev/null || echo "$invalid")" \
         )
     # Fedora.
     paths_to_try+=( \

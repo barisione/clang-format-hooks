@@ -11,7 +11,7 @@ set -o pipefail
 
 readonly bash_source="${BASH_SOURCE[0]:-$0}"
 
-if [ -t 1 ] && which tput > /dev/null 2>&1; then
+if [ -t 1 ] && hash tput 2> /dev/null; then
     readonly b=$(tput bold)
     readonly i=$(tput sitm)
     readonly n=$(tput sgr0)
@@ -272,7 +272,7 @@ if [ "$interactive" = false ]; then
     exit 1
 fi
 
-if which colordiff > /dev/null 2>&1; then
+if hash colordiff 2> /dev/null; then
     colordiff < "$patch"
 else
     echo "${b}(Install colordiff to see this diff in color!)${n}"
