@@ -213,6 +213,10 @@ if [ "$whole_file" = false ]; then
     paths_to_try+=( \
         /usr/share/clang/clang-format-diff.py \
         )
+    # Gentoo.
+    while read -r f; do
+        paths_to_try+=("$f")
+    done < <(compgen -G "/usr/lib/llvm/*/share/clang/clang-format-diff.py" | sort -n -r)
     # Homebrew.
     while read -r f; do
         paths_to_try+=("$f")
