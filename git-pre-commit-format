@@ -93,7 +93,7 @@ while true; do
         break
     elif [ -f "$top_dir/.git" ]; then
         # We are in a submodule or git work-tree if .git is a file!
-        if [ -z $(git rev-parse --show-superproject-working-tree) ]; then
+        if [ -z "$(git rev-parse --show-superproject-working-tree)" ]; then
             # The --show-superproject-working-tree option is available and we
             # are in a work tree.
             gitdir=$(<"$top_dir/.git")
