@@ -80,6 +80,7 @@ function rel_realpath() {
 # Find the top-level git directory (taking into account we could be in a submodule).
 declare git_test_dir=.
 declare top_dir
+
 while true; do
     top_dir=$(cd "$git_test_dir" && git rev-parse --show-toplevel) || \
         error_exit "You need to be in the git repository to run this script."
@@ -90,8 +91,30 @@ while true; do
     if [ -d "$top_dir/.git" ]; then
         # We are done! top_dir is the root git directory.
         break
-    else
-        # We are in a submodule if .git is a file!
+    elif [ -f "$top_dir/.git" ]; then
+        # We are in a submodule or git work-tree if .git is a file!
+        if [ -z $(git rev-parse --show-superproject-working-tree) ]; then
+            # The --show-superproject-working-tree option is available and we
+            # are in a work tree.
+            gitdir=$(<"$top_dir/.git")
+            gitdir=${gitdir#gitdir: }
+            topdir_basename=${gitdir##*/}
+            git_test_dir=${gitdir%/worktrees/$topdir_basename}
+            break
+        fi
+        # If show-superproject-working-tree returns non-empty string, either:
+        #
+        #   1) --show-superproject-working-tree is not defined for this version of git
+        #
+        #   2) --show-superproject-working-tree is defined and we are in a submodule
+        #
+        # In the first case we will assume it is not a work tree because people
+        # using that advanced technology will be using a recent version of git.
+        #
+        # In second case, we could use the value returned by
+        # --show-superproject-working-tree directly but we do not here because
+        # that would require extra work.
+        #
         git_test_dir="$git_test_dir/.."
     fi
 done
