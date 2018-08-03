@@ -162,7 +162,7 @@ if [ ${#positionals[@]} -gt 0 ]; then
 fi
 
 [ -n "$style" ] || \
-    error_exit "If you use --style you need to speficy a valid style."
+    error_exit "If you use --style you need to specify a valid style."
 
 #######################################
 # Detection of clang-format & friends #
@@ -181,7 +181,7 @@ if [ -z "$format" ]; then
         $'On Ubuntu/Debian this is available in the clang-format package or, in\n' \
         $'older distro versions, clang-format-VERSION.\n' \
         $'On Fedora it\'s available in the clang package.\n' \
-        $'You can also speficy your own path for clang-format by setting the\n' \
+        $'You can also specify your own path for clang-format by setting the\n' \
         $'$CLANG_FORMAT environment variable.'
 fi
 
@@ -249,7 +249,7 @@ if [ "$whole_file" = false ]; then
             $'at https://github.com/barisione/clang-format-hooks/issues with details about\n' \
             $'your operating system and setup.\n' \
             $'\n' \
-            $'You can also speficy your own path for clang-format-diff by setting the\n' \
+            $'You can also specify your own path for clang-format-diff by setting the\n' \
             $'$CLANG_FORMAT_DIFF environment variable, for instance:\n' \
             $'\n' \
             $'    CLANG_FORMAT_DIFF="python /.../clang-format-diff.py" \\\n' \
