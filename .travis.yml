@@ -37,3 +37,7 @@ before_install:
 
 script:
   - ./run-checks
+
+matrix:
+  allow_failures:
+    - os: osx
