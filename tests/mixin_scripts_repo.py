@@ -29,7 +29,8 @@ class ScriptsRepoMixin(GitMixin):
         assert not self.repo
         assert not self.scripts_dir
 
-        self.repo = self.config_repo()
+        # This class's config_repo doesn't return, but the derived ones do.
+        self.repo = self.config_repo() # pylint: disable=assignment-from-no-return
 
         assert self.repo
 
