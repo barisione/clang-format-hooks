@@ -19,7 +19,7 @@ def makedirs(dir_path):
             raise
 
 
-class WorkDir(object):
+class WorkDir():
     '''
     Temporarily change the current working directory.
 
@@ -53,7 +53,7 @@ class WorkDir(object):
         self._old_work_dir = None
 
 
-class EnvAdder(object):
+class EnvAdder():
     '''
     Add a directory to `$PATH`.
 
