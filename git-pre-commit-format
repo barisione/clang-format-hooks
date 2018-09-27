@@ -85,6 +85,12 @@ while true; do
     top_dir=$(cd "$git_test_dir" && git rev-parse --show-toplevel) || \
         error_exit "You need to be in the git repository to run this script."
 
+    # try to handle git work-tree
+    declare git_common_dir
+    if git_common_dir=$(git rev-parse --git-common-dir 2>/dev/null); then
+        top_dir=$(realpath "$git_common_dir/..")
+    fi
+
     [ -e "$top_dir/.git" ] || \
         error_exit "No .git directory in $top_dir."
 
