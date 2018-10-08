@@ -8,7 +8,20 @@ echo "== RUNNING TESTS =="
 echo
 
 echo "== RUNNING PYLINT =="
+readonly venv_activate=./venv-for-travis/bin/activate
+if [ -e "$venv_activate" ]; then
+    echo "Using virtualenv: $venv_activate"
+    # shellcheck disable=SC1090
+    . "$venv_activate"
+else
+    echo "No virtualenv"
+fi
+
 ./tests/run-pylint
+
+if [ -e "$venv_activate" ]; then
+    deactivate
+fi
 echo
 
 echo "== RUNNING SHELLCHECK =="

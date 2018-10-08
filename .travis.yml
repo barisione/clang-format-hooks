@@ -29,10 +29,14 @@ before_install:
             coreutils \
             python2.7 \
             python3-pip \
-            python3.4 \
+            python3.5 \
             shellcheck \
             && \
-        sudo pip3 install pylint; \
+        sudo pip3 install virtualenv && \
+        virtualenv --python=python3.5 venv-for-travis && \
+        . ./venv-for-travis/bin/activate && \
+        pip install pylint && \
+        deactivate; \
     fi
 
 script:
