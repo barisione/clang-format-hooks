@@ -15,12 +15,33 @@ os:
 before_install:
   - >
     if [ "$TRAVIS_OS_NAME" = osx ]; then \
+        echo XXX\ "MARKER: 1" && \
         brew update && \
-        brew upgrade python && \
-        brew install \
-            clang-format \
-            shellcheck \
-            && \
+        echo XXX\ "MARKER: 2" && \
+        echo brew upgrade python && \
+        echo XXX\ "MARKER: 3" && \
+        brew list &&
+        echo XXX\ "MARKER: 3.1" && \
+        brew uninstall oclint && \
+        echo XXX\ "MARKER: 3.2" && \
+        brew install gcc && \
+        echo XXX\ "MARKER: 4" && \
+        brew install clang-format && \
+        echo XXX\ "MARKER: 5" && \
+        brew install shellcheck && \
+        echo XXX\ "MARKER: 6" && \
+        which /usr/local/bin/clang-format || \
+            ( \
+                echo "clang-format not installed";
+                false \
+            ) && \
+        echo XXX\ "MARKER: 7" && \
+        which /usr/local/bin/shellcheck || \
+            ( \
+                echo "shellcheck not installed";
+                false \
+            ) && \
+        echo XXX\ "MARKER: 8" && \
         sudo pip3 install pylint; \
     else \
         sudo apt-get update && \
