@@ -18,7 +18,8 @@ from mixin_scripts_repo import (
     CopiedFilesMixin,
     )
 
-class HookTestCaseBase(ScriptsRepoMixin):
+
+class HookTestCaseBase():
     '''
     Test the git hook script.
     '''
@@ -206,18 +207,21 @@ class HookTestCaseBase(ScriptsRepoMixin):
 
 
 class HookClonedTestCase(CloneRepoMixin,
+                         ScriptsRepoMixin,
                          HookTestCaseBase,
                          unittest.TestCase):
     pass
 
 
 class HookSubmoduleTestCase(SubmoduleMixin,
+                            ScriptsRepoMixin,
                             HookTestCaseBase,
                             unittest.TestCase):
     pass
 
 
 class HookCopiedScriptsTestCase(CopiedFilesMixin,
+                                ScriptsRepoMixin,
                                 HookTestCaseBase,
                                 unittest.TestCase):
     pass
