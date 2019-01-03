@@ -13,6 +13,7 @@ from testutils import (
 
 from mixin_scripts_repo import (
     ScriptsRepoMixin,
+    ScriptsWorkTreeRepoMixin,
     CloneRepoMixin,
     SubmoduleMixin,
     CopiedFilesMixin,
@@ -224,4 +225,25 @@ class HookCopiedScriptsTestCase(CopiedFilesMixin,
                                 ScriptsRepoMixin,
                                 HookTestCaseBase,
                                 unittest.TestCase):
+    pass
+
+
+class HookClonedWorkTreeTestCase(CloneRepoMixin,
+                                 ScriptsWorkTreeRepoMixin,
+                                 HookTestCaseBase,
+                                 unittest.TestCase):
+    pass
+
+
+class HookSubmoduleWorkTreeTestCase(SubmoduleMixin,
+                                    ScriptsWorkTreeRepoMixin,
+                                    HookTestCaseBase,
+                                    unittest.TestCase):
+    pass
+
+
+class HookCopiedScriptsWorkTreeTestCase(CopiedFilesMixin,
+                                        ScriptsWorkTreeRepoMixin,
+                                        HookTestCaseBase,
+                                        unittest.TestCase):
     pass

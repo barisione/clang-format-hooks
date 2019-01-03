@@ -4,7 +4,10 @@
 import os
 import shutil
 
-from mixin_git import GitMixin
+from mixin_git import (
+    GitMixin,
+    GitRepository,
+    )
 import testutils
 
 
@@ -34,7 +37,7 @@ class ScriptsRepoMixin(GitMixin):
 
         assert self.repo
 
-        # If case we clone the current repo but there's unstaged content.
+        # If case we cloned the current repo but there's unstaged content.
         self.update_scripts()
 
     def update_scripts(self):
@@ -95,6 +98,49 @@ class ScriptsRepoMixin(GitMixin):
         content_list = ['{}: {}'.format(k, v) for k, v in style_dict.items()]
         content = '\n'.join(content_list)
         self.repo.write_file('.clang-format', content)
+
+
+class ScriptsWorkTreeRepoMixin(ScriptsRepoMixin):
+    '''
+    A mixin used to represent a git repository which uses work trees.
+
+    How the scripts end up in the repo is decided by derived classes.
+    By using classes derived from this mixin, you can get your tests to run in various
+    configuration.
+    '''
+
+    def setUp(self):
+        super(ScriptsWorkTreeRepoMixin, self).setUp()
+
+        # Now the repo should be setup, but we create an alternative worktree dir
+        # and use that one instead of the main one.
+
+        assert self.repo
+
+        # checkout -f in case there are modified scripts (copied by update_scripts).
+        # We will re-update the scipts anyway later.
+        self.repo.git_check_output('checkout', '-f')
+
+        # We don't know on which branch we are. It could be master, a work branch
+        # or some branch created by GitHub.
+        # We need a branch to use for the worktree and a different one on which
+        # the old repo should be, so we just create too.
+        worktree_branch = 'other-for-worktree'
+        self.repo.git_check_output('checkout', '-b', worktree_branch)
+        main_repo_branch = 'main-repo'
+        self.repo.git_check_output('checkout', '-b', main_repo_branch)
+
+        worktree_branch_path = os.path.join(self.make_tmp_sub_dir(),
+                                            'worktree-dir-for-branch--' + worktree_branch)
+        self.repo.git_check_output('worktree', 'add', worktree_branch_path, worktree_branch)
+
+        self.repo = GitRepository(worktree_branch_path)
+
+        # The new module may have submodules, make sure they are synced.
+        self.repo.git_check_output('submodule', 'update', '--init', '--recursive')
+
+        # If case we cloned the current repo but there's unstaged content.
+        self.update_scripts()
 
 
 class CloneRepoMixin():

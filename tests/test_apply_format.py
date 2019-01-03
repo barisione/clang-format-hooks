@@ -9,6 +9,7 @@ import data
 
 from mixin_scripts_repo import (
     ScriptsRepoMixin,
+    ScriptsWorkTreeRepoMixin,
     CloneRepoMixin,
     SubmoduleMixin,
     CopiedFilesMixin,
@@ -292,4 +293,25 @@ class FormatCopiedScriptsTestCase(CopiedFilesMixin,
                                   ScriptsRepoMixin,
                                   FormatTestCaseBase,
                                   unittest.TestCase):
+    pass
+
+
+class FormatClonedWorkTreeTestCase(CloneRepoMixin,
+                                   ScriptsWorkTreeRepoMixin,
+                                   FormatTestCaseBase,
+                                   unittest.TestCase):
+    pass
+
+
+class FormatSubmoduleWorkTreeTestCase(SubmoduleMixin,
+                                      ScriptsWorkTreeRepoMixin,
+                                      FormatTestCaseBase,
+                                      unittest.TestCase):
+    pass
+
+
+class FormatCopiedScriptsWorkTreeTestCase(CopiedFilesMixin,
+                                          ScriptsWorkTreeRepoMixin,
+                                          FormatTestCaseBase,
+                                          unittest.TestCase):
     pass
