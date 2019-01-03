@@ -24,6 +24,39 @@ class GitRepository:
         '''
         self.repo_dir = repo_dir
 
+    @property
+    def git_dir(self):
+        '''
+        The path for the `.git` directory for this repository.
+
+        NOTE: This is broken for submodules as we don't really need support for
+        that at the moment!
+        '''
+        with self.work_dir():
+            # Simple, this is a normal .git repo with a .git directory.
+            if os.path.isdir('.git'):
+                return os.path.abspath('.git')
+
+            # A worktree or a submodule! Damn!
+            with open('.git') as git_file:
+                content = git_file.read().rstrip()
+            intro = 'gitdir: '
+            assert content.startswith(intro), \
+                'Unexpected content of .git file: {}'.format(content)
+            worktree_git_dir = content[len(intro):]
+
+            # Now we have the git directory for this worktree's branch, it should
+            # be something like PROJECT/.git/worktrees/WORKTREE-DIR-NAME.
+            # We just rely on the path structure to extract the main dir, this is
+            # good enough for tests.
+            # Note that we ignore submodules for now as we don't really need to
+            # support them.
+            worktree_git_dir = os.path.normpath(worktree_git_dir)
+            components = worktree_git_dir.split(os.path.sep)
+            assert components[-2] == 'worktrees'
+            # Everything before the worktrees directory.
+            return os.path.sep.join(components[:-2])
+
     def work_dir(self):
         return testutils.WorkDir(self.repo_dir)
 
