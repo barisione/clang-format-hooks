@@ -82,8 +82,26 @@ declare git_test_dir=.
 declare top_dir
 
 while true; do
-    top_dir=$(cd "$git_test_dir" && git rev-parse --show-toplevel) || \
+    top_dir=$(git -C "$git_test_dir" rev-parse --show-toplevel) || \
         error_exit "You need to be in the git repository to run this script."
+
+    # Try to handle git worktree.
+    # The best way to deal both with git submodules and worktrees would be to
+    # use --show-superproject-working-tree, but it's not supported in git 2.7.4
+    # which is shipped in Ubuntu 16.04.
+    declare git_common_dir
+    if git_common_dir=$(git -C "$git_test_dir" rev-parse --git-common-dir 2>/dev/null); then
+        # The common dir could be relative, so we make it absolute.
+        git_common_dir=$(cd "$git_test_dir" && realpath "$git_common_dir")
+        declare maybe_top_dir
+        maybe_top_dir=$(realpath "$git_common_dir/..")
+        if [ -e "$maybe_top_dir/.git" ]; then
+            # We are not in a submodules, otherwise common dir would have been
+            # something like PROJ/.git/modules/SUBMODULE and there would not be
+            # a .git directory in PROJ/.git/modules/.
+            top_dir="$maybe_top_dir"
+        fi
+    fi
 
     [ -e "$top_dir/.git" ] || \
         error_exit "No .git directory in $top_dir."
@@ -92,29 +110,7 @@ while true; do
         # We are done! top_dir is the root git directory.
         break
     elif [ -f "$top_dir/.git" ]; then
-        # We are in a submodule or git work-tree if .git is a file!
-        if [ -z "$(cd "$git_test_dir" && git rev-parse --show-superproject-working-tree)" ]; then
-            # The --show-superproject-working-tree option is available and we
-            # are in a work tree.
-            gitdir=$(<"$top_dir/.git")
-            gitdir=${gitdir#gitdir: }
-            topdir_basename=${gitdir##*/}
-            git_test_dir=${gitdir%/worktrees/$topdir_basename}
-            break
-        fi
-        # If show-superproject-working-tree returns non-empty string, either:
-        #
-        #   1) --show-superproject-working-tree is not defined for this version of git
-        #
-        #   2) --show-superproject-working-tree is defined and we are in a submodule
-        #
-        # In the first case we will assume it is not a work tree because people
-        # using that advanced technology will be using a recent version of git.
-        #
-        # In second case, we could use the value returned by
-        # --show-superproject-working-tree directly but we do not here because
-        # that would require extra work.
-        #
+        # We are in a submodule.
         git_test_dir="$git_test_dir/.."
     fi
 done
