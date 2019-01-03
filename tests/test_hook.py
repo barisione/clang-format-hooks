@@ -59,7 +59,8 @@ class HookTestCaseBase(ScriptsRepoMixin):
         self.assertEqual(output.strip(), 'The hook is already installed.')
 
     def test_install_already_exists(self):
-        self.repo.write_file(os.path.join('.git', 'hooks', 'pre-commit'), '')
+        with open(os.path.join(self.repo.git_dir, 'hooks', 'pre-commit'), 'w') as pre_commit_file:
+            pre_commit_file.write('echo "Dummy"')
 
         res, _ = self.install(allow_errors=True)
         self.assertFalse(res)
