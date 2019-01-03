@@ -97,7 +97,7 @@ class ScriptsRepoMixin(GitMixin):
         self.repo.write_file('.clang-format', content)
 
 
-class CloneRepoMixin(ScriptsRepoMixin):
+class CloneRepoMixin():
     '''
     A mixin representing a git repository cloned from this git repository.
     '''
@@ -110,7 +110,7 @@ class CloneRepoMixin(ScriptsRepoMixin):
         return self.clone_repo(self.this_repo_path())
 
 
-class SubmoduleMixin(ScriptsRepoMixin):
+class SubmoduleMixin():
     '''
     A mixin representing a git repository in which this git repository is added as a submodule.
     '''
@@ -128,7 +128,7 @@ class SubmoduleMixin(ScriptsRepoMixin):
         return repo
 
 
-class CopiedFilesMixin(ScriptsRepoMixin):
+class CopiedFilesMixin():
     '''
     A mixin representing a git repository in which the scripts from this git repository are
     directly copied.

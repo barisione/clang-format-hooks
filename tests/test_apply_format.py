@@ -15,7 +15,7 @@ from mixin_scripts_repo import (
     )
 
 
-class FormatTestCaseBase(ScriptsRepoMixin):
+class FormatTestCaseBase():
     '''
     Test the apply-format script.
     '''
@@ -275,18 +275,21 @@ class FormatTestCaseBase(ScriptsRepoMixin):
 
 
 class FormatClonedTestCase(CloneRepoMixin,
+                           ScriptsRepoMixin,
                            FormatTestCaseBase,
                            unittest.TestCase):
     pass
 
 
 class FormatSubmoduleTestCase(SubmoduleMixin,
+                              ScriptsRepoMixin,
                               FormatTestCaseBase,
                               unittest.TestCase):
     pass
 
 
 class FormatCopiedScriptsTestCase(CopiedFilesMixin,
+                                  ScriptsRepoMixin,
                                   FormatTestCaseBase,
                                   unittest.TestCase):
     pass
