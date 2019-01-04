@@ -67,6 +67,9 @@ enable=all
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
+#
+# We disable no-member and too-many-ancestors as they doen't work well with
+# mixins.
 disable=
     suppressed-message,
     locally-disabled,
@@ -82,6 +85,8 @@ disable=
     relative-import,
     redefined-variable-type,
     too-many-public-methods,
+    no-member,
+    too-many-ancestors,
 
 [REPORTS]
 
