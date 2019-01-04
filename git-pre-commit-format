@@ -260,9 +260,23 @@ fi
 
 readonly style=$(cd "$top_dir" && git config hooks.clangFormatDiffStyle || echo file)
 
+apply_format_opts=(
+    "--style=$style"
+    --cached
+    )
+
+readonly exclusions_file="$top_dir/.clang-format-hook-exclude"
+if [ -e "$exclusions_file" ]; then
+    while IFS= read -r line; do
+        if [[ "$line" && "$line" != "#"* ]]; then
+            apply_format_opts+=("--internal-opt-ignore-regex=$line")
+        fi
+    done < "$exclusions_file"
+fi
+
 readonly patch=$(mktemp)
 trap '{ rm -f "$patch"; }' EXIT
-"$apply_format" --style="$style" --cached > "$patch" || \
+"$apply_format" --style="$style" --cached "${apply_format_opts[@]}" > "$patch" || \
     error_exit $'\nThe apply-format script failed.'
 
 if [ "$(wc -l < "$patch")" -eq 0 ]; then

@@ -109,6 +109,7 @@ declare apply_to_staged=false
 declare staged=false
 declare in_place=false
 declare style=file
+declare ignored=()
 while [ $# -gt 0 ]; do
     declare arg="$1"
     shift # Past option.
@@ -136,6 +137,16 @@ while [ $# -gt 0 ]; do
             [ $# -gt 0 ] || \
                 error_exit "No argument for --style option."
             style="$1"
+            shift
+            ;;
+        --internal-opt-ignore-regex=* )
+            ignored+=("${arg//--internal-opt-ignore-regex=/}")
+            ;;
+        --internal-opt-ignore-regex )
+            ignored+=("${arg//--internal-opt-ignore-regex=/}")
+            [ $# -gt 0 ] || \
+                error_exit "No argument for --internal-opt-ignore-regex option."
+            ignored+=("$1")
             shift
             ;;
         -- )
@@ -299,11 +310,21 @@ else # Diff-only.
     read -r -a format_diff_args <<< "$format_diff"
     [ "$in_place" = true ] && format_diff_args+=("-i")
 
+    # Build the regex for paths to consider or ignore.
+    # We use negative lookahead assertions which preceed the list of allowed patterns
+    # (that is, the extensions we want).
+    exclusions_regex=
+    if [ "${#ignored[@]}" -gt 0 ]; then
+        for pattern in "${ignored[@]}"; do
+            exclusions_regex="$exclusions_regex(?!$pattern)"
+        done
+    fi
+
     "${git_args[@]}" "$@" \
         | "${format_diff_args[@]}" \
             -p1 \
             -style="$style" \
-            -iregex='.*\.(c|cpp|cxx|cc|h|m|mm|js|java)' \
+            -iregex="$exclusions_regex"'.*\.(c|cpp|cxx|cc|h|m|mm|js|java)' \
             > "$patch_dest" \
         || exit 1
 

@@ -48,6 +48,12 @@ class HookTestCaseBase():
                 raise
             return False, exc.output
 
+    def write_ignore_list(self, *args):
+        with WorkDir(os.path.join(self.repo.git_dir, '..')):
+            with open('.clang-format-hook-exclude', 'w') as exclude_file:
+                exclude_file.write('\n'.join(args))
+                exclude_file.write('\n')
+
     def test_install(self):
         res, output = self.install()
         self.assertTrue(res)
@@ -205,6 +211,57 @@ class HookTestCaseBase():
             # The file on disk is updated.
             self.assertEqual(self.repo.read_file(data.FILENAME), data.FIXED)
 
+    def test_commit_ignorefile_empty(self):
+        self.install()
+
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+
+        # Don't ignore anything.
+        self.write_ignore_list()
+
+        self.repo.commit(input_text='a\n')
+        # The file on disk is updated as it's not ignored.
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.FIXED)
+
+    def test_commit_ignorefile_comments_only(self):
+        self.install()
+
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+
+        # Don't ignore anything, but add comments and empty lines.
+        self.write_ignore_list('# Hello world', '', '# Bar baz')
+
+        self.repo.commit(input_text='a\n')
+        # The file on disk is updated as it's not ignored.
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.FIXED)
+
+    def test_commit_ignorefile_ignore_foo(self):
+        self.install()
+
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+
+        # Ignore the C file we modify.
+        self.write_ignore_list(data.FILENAME)
+
+        self.repo.commit()
+        # The file on disk is updated but its formatting was not fixed.
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
+
+    def test_commit_ignorefile_ignore_pattern(self):
+        self.install()
+
+        self.repo.write_file(data.FILENAME, data.CODE)
+        self.repo.add(data.FILENAME)
+
+        # Ignore the C file we modify through a pattern.
+        self.write_ignore_list(r'f.o\.c')
+
+        self.repo.commit()
+        # The file on disk is updated but its formatting was not fixed.
+        self.assertEqual(self.repo.read_file(data.FILENAME), data.CODE)
 
 
 class HookClonedTestCase(CloneRepoMixin,
