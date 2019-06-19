@@ -313,14 +313,37 @@ else
     cat "$patch"
 fi
 
+# We don't want to suggest applying clang-format after merge resolution
+if git rev-parse MERGE_HEAD >/dev/null 2>&1; then
+    readonly this_is_a_merge=true
+else
+    readonly this_is_a_merge=false
+fi
+
 echo
 echo "${b}The staged content is not formatted correctly.${n}"
 echo "The patch shown above can be applied automatically to fix the formatting."
 echo
 
+if $this_is_a_merge; then
+    echo "${b}You appear to be committing the result of a merge. It is not${n}"
+    echo "${b}recommended to apply the patch if it will reformat any code you${n}"
+    echo "${b}did not modify in your branch.${n}"
+    echo
+    readonly recommend_apply=" (not recommended for merge!)"
+    readonly recommend_force=""
+    readonly bold_apply=""
+    readonly bold_force="${b}"
+else
+    readonly recommend_apply=""
+    readonly recommend_force=" (not recommended!)"
+    readonly bold_apply="${b}"
+    readonly bold_force=""
+fi
+
 echo "You can:"
-echo " [a]: Apply the patch"
-echo " [f]: Force and commit anyway (not recommended!)"
+echo " ${bold_apply}[a]: Apply the patch${recommend_apply}${n}"
+echo " ${bold_force}[f]: Force and commit anyway${recommend_force}${n}"
 echo " [c]: Cancel the commit"
 echo " [?]: Show help"
 echo
@@ -344,15 +367,26 @@ while true; do
                 $'Cannot apply patch to git staged changes.\n' \
                 $'This may happen if you have some overlapping unstaged changes. To solve\n' \
                 $'you need to stage or reset changes manually.'
+
+            if $this_is_a_merge; then
+                echo
+                echo "Applied the patch to reformat the merge commit."
+                echo "You can always abort by quitting your editor with no commit message."
+                echo
+                echo -n "Press return to continue."
+                read -r < "$tty"
+            fi
             ;;
 
         [fF] )
             echo
-            echo "Will commit anyway!"
-            echo "You can always abort by quitting your editor with no commit message."
-            echo
-            echo -n "Press return to continue."
-            read -r < "$tty"
+            if ! $this_is_a_merge; then
+                echo "Will commit anyway!"
+                echo "You can always abort by quitting your editor with no commit message."
+                echo
+                echo -n "Press return to continue."
+                read -r < "$tty"
+            fi
             exit 0
             ;;
 
