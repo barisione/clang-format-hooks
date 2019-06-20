@@ -72,17 +72,17 @@ ${b}DESCRIPTION${n}
     ${b}-f, --whole-file${n}
         Reformat the specified files completely (including parts you didn't
         change).
-        The patch is printed on stdout by default. Use -i if you want to modify
+        The fix is printed on stdout by default. Use -i if you want to modify
         the files on disk.
 
     ${b}--staged, --cached${n}
         Reformat only code which is staged for commit.
-        The patch is printed on stdout by default. Use -i if you want to modify
+        The fix is printed on stdout by default. Use -i if you want to modify
         the files on disk.
 
     ${b}-i${n}
         Reformat the code and apply the changes to the files on disk (instead
-        of just printing the patch on stdout).
+        of just printing the fix on stdout).
 
     ${b}--apply-to-staged${n}
         This is like specifying both --staged and -i, but the formatting
@@ -334,9 +334,9 @@ else # Diff-only.
             exit 0
         fi
         patch -p0 < "$patch_dest" || \
-            error_exit "Cannot apply patch to local files."
+            error_exit "Cannot apply fix to local files."
         git apply -p0 --cached < "$patch_dest" || \
-            error_exit "Cannot apply patch to git staged changes."
+            error_exit "Cannot apply fix to git staged changes."
     fi
 
 fi
