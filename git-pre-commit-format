@@ -322,12 +322,12 @@ fi
 
 echo
 echo "${b}The staged content is not formatted correctly.${n}"
-echo "The patch shown above can be applied automatically to fix the formatting."
+echo "The fix shown above can be applied automatically to the commit."
 echo
 
 if $this_is_a_merge; then
     echo "${b}You appear to be committing the result of a merge. It is not${n}"
-    echo "${b}recommended to apply the patch if it will reformat any code you${n}"
+    echo "${b}recommended to apply the fix if it will reformat any code you${n}"
     echo "${b}did not modify in your branch.${n}"
     echo
     readonly recommend_apply=" (not recommended for merge!)"
@@ -342,7 +342,7 @@ else
 fi
 
 echo "You can:"
-echo " ${bold_apply}[a]: Apply the patch${recommend_apply}${n}"
+echo " ${bold_apply}[a]: Apply the fix${recommend_apply}${n}"
 echo " ${bold_force}[f]: Force and commit anyway${recommend_force}${n}"
 echo " [c]: Cancel the commit"
 echo " [?]: Show help"
@@ -359,18 +359,18 @@ while true; do
             patch -p0 < "$patch" || \
                 error_exit \
                 $'\n' \
-                $'Cannot apply patch to local files.\n' \
+                $'Cannot apply fix to local files.\n' \
                 $'Have you modified the file locally after starting the commit?'
             git apply -p0 --cached < "$patch" || \
                 error_exit \
                 $'\n' \
-                $'Cannot apply patch to git staged changes.\n' \
+                $'Cannot apply fix to git staged changes.\n' \
                 $'This may happen if you have some overlapping unstaged changes. To solve\n' \
                 $'you need to stage or reset changes manually.'
 
             if $this_is_a_merge; then
                 echo
-                echo "Applied the patch to reformat the merge commit."
+                echo "Applied the fix to reformat the merge commit."
                 echo "You can always abort by quitting your editor with no commit message."
                 echo
                 echo -n "Press return to continue."
