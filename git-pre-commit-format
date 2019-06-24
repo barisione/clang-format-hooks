@@ -274,9 +274,15 @@ if [ -e "$exclusions_file" ]; then
     done < "$exclusions_file"
 fi
 
+# Check if we are editing a commit through a "git commit --amend"
+git_command=$(ps -ocommand= -p $PPID)
+if [ -z "${git_command##git\ commit*--amend*}" ]; then
+     apply_format_opts+=("--amend")
+fi
+
 readonly patch=$(mktemp)
 trap '{ rm -f "$patch"; }' EXIT
-"$apply_format" --style="$style" --cached "${apply_format_opts[@]}" > "$patch" || \
+"$apply_format" --style="$style" --staged "${apply_format_opts[@]}" > "$patch" || \
     error_exit $'\nThe apply-format script failed.'
 
 if [ "$(wc -l < "$patch")" -eq 0 ]; then

@@ -80,6 +80,11 @@ ${b}DESCRIPTION${n}
         The fix is printed on stdout by default. Use -i if you want to modify
         the files on disk.
 
+    ${b}--amend
+        Reformat code which is from previous commit when a --amend is given.
+        The fix is printed on stdout by default. Use -i if you want to modify
+        the files on disk.
+
     ${b}-i${n}
         Reformat the code and apply the changes to the files on disk (instead
         of just printing the fix on stdout).
@@ -107,6 +112,7 @@ declare has_positionals=false
 declare whole_file=false
 declare apply_to_staged=false
 declare staged=false
+declare amend=false
 declare in_place=false
 declare style=file
 declare ignored=()
@@ -126,6 +132,9 @@ while [ $# -gt 0 ]; do
             ;;
         --cached | --staged )
             staged=true
+            ;;
+        --amend )
+            amend=true
             ;;
         -i )
             in_place=true
@@ -281,6 +290,8 @@ if [ "$whole_file" = true ]; then
         error_exit "No files to reformat specified."
     [ "$staged" = false ] || \
         error_exit "--staged/--cached only make sense when applying to a diff."
+    [ "$amend" = false ] || \
+        error_exit "--amend only make sense when applying to a diff."
 
     read -r -a format_args <<< "$format"
     format_args+=("-style=file")
@@ -302,8 +313,17 @@ else # Diff-only.
         readonly patch_dest=/dev/stdout
     fi
 
-    declare git_args=(git diff -U0 --no-color)
-    [ "$staged" = true ] && git_args+=("--staged")
+    [ "$staged" = false ] && [ "$amend" = false ] && \
+	error_exit "--staged or --amend should be enabled at this point"
+
+    declare git_cmd=(git diff)
+
+    [ "$amend" = true ] && git_cmd+=(HEAD~)
+    [ "$staged" = true ] && git_cmd+=(--staged)
+    [ "$staged" = false ] && git_cmd+=(HEAD)
+
+    git_cmd+=(-U0)
+    git_cmd+=(--no-color)
 
     # $format_diff may contain a command ("python") and the script to excute, so we
     # need to split it.
@@ -320,7 +340,7 @@ else # Diff-only.
         done
     fi
 
-    "${git_args[@]}" "$@" \
+    "${git_cmd[@]}" "$@" \
         | "${format_diff_args[@]}" \
             -p1 \
             -style="$style" \
