@@ -100,7 +100,15 @@ while true; do
             # something like PROJ/.git/modules/SUBMODULE and there would not be
             # a .git directory in PROJ/.git/modules/.
             top_dir="$maybe_top_dir"
+        elif [ -e "$git_common_dir/hooks" ]; then
+            top_dir=$(realpath "$git_common_dir")
         fi
+    fi
+
+    if [ -d "$top_dir/hooks" ]; then
+        # We are done! top_dir is the root git directory.
+        hook_path="$top_dir/hooks/pre-commit"
+        break
     fi
 
     [ -e "$top_dir/.git" ] || \
@@ -108,6 +116,7 @@ while true; do
 
     if [ -d "$top_dir/.git" ]; then
         # We are done! top_dir is the root git directory.
+        hook_path="$top_dir/.git/hooks/pre-commit"
         break
     elif [ -f "$top_dir/.git" ]; then
         # We are in a submodule.
@@ -117,7 +126,6 @@ done
 
 readonly top_dir
 
-hook_path="$top_dir/.git/hooks/pre-commit"
 readonly hook_path
 
 me=$(realpath "$bash_source") || exit 1
