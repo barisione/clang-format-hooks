@@ -180,9 +180,14 @@ fi
 #######################################
 
 # clang-format.
-declare format="${CLANG_FORMAT:-}"
+declare format="$(git config clangformat.binary 2>/dev/null)"
 if [ -z "$format" ]; then
     format=$(type -p clang-format)
+fi
+
+declare extensions="$(git config clangformat.extensions 2>/dev/null)"
+if [ -z "$extensions" ]; then
+    extensions="c,cpp,cxx,cc,h,hpp,m,mm,js,java"
 fi
 
 if [ -z "$format" ]; then
@@ -193,7 +198,7 @@ if [ -z "$format" ]; then
         $'older distro versions, clang-format-VERSION.\n' \
         $'On Fedora it\'s available in the clang package.\n' \
         $'You can also specify your own path for clang-format by setting the\n' \
-        $'$CLANG_FORMAT environment variable.'
+        $'git config clangformat.binary config option.'
 fi
 
 # clang-format-diff.
@@ -322,9 +327,10 @@ else # Diff-only.
 
     "${git_args[@]}" "$@" \
         | "${format_diff_args[@]}" \
+            -binary="$format" \
             -p1 \
             -style="$style" \
-            -iregex="$exclusions_regex"'.*\.(c|cpp|cxx|cc|h|hpp|m|mm|js|java)' \
+            -iregex="$exclusions_regex"'.*\.('"${extensions//,/|}"')' \
             > "$patch_dest" \
         || exit 1
 
