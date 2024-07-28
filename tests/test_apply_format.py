@@ -159,8 +159,8 @@ class FormatTestCaseBase():
         # Two files need changes.
         self.repo.write_file(data.FILENAME_ALT, data.CODE)
         output = self.apply_format_output()
-        douple_patch = data.PATCH + data.PATCH.replace(data.FILENAME, data.FILENAME_ALT)
-        self.assertEqual(self.simplify_diff(output), douple_patch)
+        double_patch = data.PATCH + data.PATCH.replace(data.FILENAME, data.FILENAME_ALT)
+        self.assertEqual(self.simplify_diff(output), double_patch)
 
         # Stage the second file. Two need changes, one is staged the other isn't.
         self.repo.add(data.FILENAME_ALT)

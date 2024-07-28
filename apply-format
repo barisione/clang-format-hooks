@@ -325,8 +325,7 @@ else # Diff-only.
             -p1 \
             -style="$style" \
             -iregex="$exclusions_regex"'.*\.(c|cpp|cxx|cc|h|hpp|m|mm|js|java)' \
-            > "$patch_dest" \
-        || exit 1
+            > "$patch_dest"
 
     if [ "$apply_to_staged" = true ]; then
         if [ ! -s "$patch_dest" ]; then
