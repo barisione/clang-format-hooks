@@ -137,7 +137,8 @@ class ScriptsWorkTreeRepoMixin(ScriptsRepoMixin):
         self.repo = GitRepository(worktree_branch_path)
 
         # The new module may have submodules, make sure they are synced.
-        self.repo.git_check_output('submodule', 'update', '--init', '--recursive')
+        self.repo.git_check_output('-c', 'protocol.file.allow=always',
+                                   'submodule', 'update', '--init', '--recursive')
 
         # If case we cloned the current repo but there's unstaged content.
         self.update_scripts()
@@ -169,7 +170,8 @@ class SubmoduleMixin():
 
     def new_repo_with_submodule(self):
         repo = self.new_repo()
-        repo.git_check_output('submodule', 'add', self.this_repo_path(), self.SUBMODULE_DIR)
+        repo.git_check_output('-c', 'protocol.file.allow=always', 'submodule', 'add',
+                              self.this_repo_path(), self.SUBMODULE_DIR)
         repo.commit()
         return repo
 
