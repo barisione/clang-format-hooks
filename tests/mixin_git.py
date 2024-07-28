@@ -68,7 +68,11 @@ class GitRepository:
         kwargs['stderr'] = subprocess.STDOUT
         kwargs['universal_newlines'] = True
         with self.work_dir():
-            return subprocess.check_output(args, **kwargs)
+            try:
+                return subprocess.check_output(args, **kwargs)
+            except subprocess.CalledProcessError as exc:
+                exc.add_note(exc.output)
+                raise exc
 
     def git_check_call(self, *args):
         return self.check_call('git', *args)
