@@ -325,8 +325,10 @@ else # Diff-only.
             -p1 \
             -style="$style" \
             -iregex="$exclusions_regex"'.*\.(c|cpp|cxx|cc|h|hpp|m|mm|js|java)' \
-            > "$patch_dest" \
-        || exit 1
+            > "$patch_dest"
+    # Starting with version 18, clang-format-diff exits with status 1 when there
+    # are diffs, but other non-zero statuses indicate errors.
+    [ $? -gt 1 ] && exit $?
 
     if [ "$apply_to_staged" = true ]; then
         if [ ! -s "$patch_dest" ]; then
