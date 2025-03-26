@@ -21,7 +21,7 @@ before_install:
             clang-format \
             shellcheck \
             && \
-        sudo pip3 install pylint; \
+        sudo pip3 install pylint==3.1.0; \
     else \
         sudo apt-get update && \
         sudo apt-get install -y \
@@ -35,7 +35,7 @@ before_install:
         sudo pip3 install virtualenv && \
         virtualenv --python=python3.5 venv-for-travis && \
         . ./venv-for-travis/bin/activate && \
-        pip install pylint && \
+        pip install pylint==3.1.0 && \
         deactivate; \
     fi
 
