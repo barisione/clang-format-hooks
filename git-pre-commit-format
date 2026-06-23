@@ -110,6 +110,23 @@ while true; do
         # We are done! top_dir is the root git directory.
         break
     elif [ -f "$top_dir/.git" ]; then
+        # Either a linked worktree or a submodule. In a linked worktree the
+        # git dir (".../worktrees/NAME") differs from the common dir, while
+        # in a submodule they are the same (".../modules/NAME").
+        declare git_dir=
+        if git_dir=$(git -C "$git_test_dir" rev-parse --git-dir 2>/dev/null); then
+            # The git dir could be relative, so we make it absolute.
+            git_dir=$(cd "$git_test_dir" && realpath "$git_dir")
+        fi
+        if [ -n "${git_common_dir:-}" ] && [ "$git_dir" != "$git_common_dir" ]; then
+            # We are in a linked worktree of a bare repository (worktrees of
+            # normal repositories were already handled above). There is no
+            # main checkout, so use the worktree's own top level directory
+            # (undoing the maybe_top_dir guess, which could have matched a
+            # "gitdir: ..." pointer file next to the bare repository).
+            top_dir=$(git -C "$git_test_dir" rev-parse --show-toplevel)
+            break
+        fi
         # We are in a submodule.
         git_test_dir="$git_test_dir/.."
     fi
@@ -117,7 +134,12 @@ done
 
 readonly top_dir
 
-hook_path="$top_dir/.git/hooks/pre-commit"
+# Ask git where the hooks live as, in a linked worktree, they are in the
+# common git directory, not in "$top_dir/.git" (which is a file).
+hook_dir=$(cd "$top_dir" && realpath "$(git rev-parse --git-path hooks)") || exit 1
+readonly hook_dir
+
+hook_path="$hook_dir/pre-commit"
 readonly hook_path
 
 me=$(realpath "$bash_source") || exit 1
