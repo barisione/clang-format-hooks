@@ -324,9 +324,13 @@ else # Diff-only.
         done
     fi
 
+    gitpathprefix=-p1
+    if [ "$(git config diff.noprefix)" == "true" ]; then
+        gitpathprefix=-p0
+    fi
     "${git_args[@]}" "$@" \
         | "${format_diff_args[@]}" \
-            -p1 \
+            $gitpathprefix \
             -style="$style" \
             -iregex="$exclusions_regex"'.*\.(c|cpp|cxx|cc|h|hpp|m|mm|js|java)' \
             > "$patch_dest"
